@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<opml version="1.0">
+  <head>
+    <title>newsbeuter - Exported Feeds</title>
+  </head>
+  <body>
+    <outline type="rss" xmlUrl="http://rusvesna.su/rss.xml" htmlUrl="http://rusvesna.su/" title="&#x420;&#x443;&#x441;&#x441;&#x43A;&#x430;&#x44F; &#x432;&#x435;&#x441;&#x43D;&#x430;"/>
+    <outline type="rss" xmlUrl="http://voicesevas.ru/rss.xml" htmlUrl="http://voicesevas.ru/" title="&#x43D;&#x43E;&#x432;&#x43E;&#x441;&#x442;&#x438; &#x41D;&#x43E;&#x432;&#x43E;&#x440;&#x43E;&#x441;&#x441;&#x438;&#x438;, &#x441;&#x438;&#x442;&#x443;&#x430;&#x446;&#x438;&#x44F; &#x43D;&#x430; &#x423;&#x43A;&#x440;&#x430;&#x438;&#x43D;&#x435; &#x441;&#x435;&#x433;&#x43E;&#x434;&#x43D;&#x44F;, &#x410;&#x422;&#x41E; (&#x430;&#x43D;&#x442;&#x438;&#x43D;&#x430;&#x440;&#x43E;&#x434;&#x43D;&#x430;&#x44F; &#x442;&#x435;&#x440;&#x440;&#x43E;&#x440;&#x438;&#x441;&#x442;&#x438;&#x447;&#x435;&#x441;&#x43A;&#x430;&#x44F; &#x43E;&#x43F;&#x435;&#x440;&#x430;&#x446;&#x438;&#x44F;) - &#x413;&#x43E;&#x43B;&#x43E;&#x441; &#x421;&#x435;&#x432;&#x430;&#x441;&#x442;&#x43E;&#x43F;&#x43E;&#x43B;&#x44F;"/>
+    <outline type="rss" xmlUrl="http://www.opennet.ru/opennews/opennews_6_full.rss" htmlUrl="http://www.opennet.ru/opennews/" title="OpenNews.opennet.ru: &#x41E;&#x441;&#x43D;&#x43E;&#x432;&#x43D;&#x430;&#x44F; &#x43B;&#x435;&#x43D;&#x442;&#x430;"/>
+    <outline type="rss" xmlUrl="http://www.opennet.ru/opennews/opennews_mini_full.rss" htmlUrl="http://www.opennet.ru/opennews/mini.shtml" title="OpenNews.opennet.ru: &#x41B;&#x435;&#x43D;&#x442;&#x430; &#x43C;&#x438;&#x43D;&#x438;-&#x43D;&#x43E;&#x432;&#x43E;&#x441;&#x442;&#x435;&#x439;"/>
+    <outline type="rss" xmlUrl="http://www.linux.org.ru/section-rss.jsp?section=1" htmlUrl="http://www.linux.org.ru/" title="Linux.org.ru: &#x41D;&#x43E;&#x432;&#x43E;&#x441;&#x442;&#x438;"/>
+    <outline type="rss" xmlUrl="http://www.hwp.ru/hardnews.xml" htmlUrl="http://www.hwp.ru" title=""/>
+    <outline type="rss" xmlUrl="http://www.hwp.ru/softnews.xml" htmlUrl="http://www.hwp.ru" title=""/>
+    <outline type="rss" xmlUrl="http://www.3dnews.ru/cpu/rss/" htmlUrl="http://www.3dnews.ru/" title="3DNews: &#x41F;&#x440;&#x43E;&#x446;&#x435;&#x441;&#x441;&#x43E;&#x440;&#x44B; &#x438; &#x43F;&#x430;&#x43C;&#x44F;&#x442;&#x44C;"/>
+    <outline type="rss" xmlUrl="http://www.3dnews.ru/video/rss/" htmlUrl="http://www.3dnews.ru/" title="3DNews: &#x412;&#x438;&#x434;&#x435;&#x43E;&#x43A;&#x430;&#x440;&#x442;&#x44B;"/>
+  </body>
+</opml>
