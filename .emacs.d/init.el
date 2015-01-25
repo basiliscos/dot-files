@@ -1,6 +1,7 @@
 (global-set-key [f2] 'save-some-buffers)
 (global-set-key [f5] 'other-window)
 (global-set-key [f6] 'sr-speedbar-toggle)
+(global-set-key [f7] 'ack)
 (global-set-key (kbd "C-`")
 		(lambda () (interactive)
           (switch-to-buffer (other-buffer))))
@@ -16,6 +17,11 @@
 (set-face-foreground 'show-paren-match-face "#def")
 (set-face-attribute 'show-paren-match-face nil :weight 'extra-bold)
 (show-paren-mode)
+;(global-linum-mode 1)
+
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
 
 ; don't ask confirmation on saving all buffers
 (add-hook 'find-file-hook (lambda () (setq buffer-save-without-query t)))
@@ -42,11 +48,12 @@
 (defun my-coding-config ()
   (local-set-key (kbd "RET") (key-binding (kbd "M-j")))
   (local-set-key (kbd "<S-return>") 'newline)
-  (local-set-key (kbd "<f7>") 'ack)
   (setq indent-tabs-mode nil)
   (setq tab-width 4)
+  (linum-mode 1)
   (sr-speedbar-open)
-  (linum-mode))
+  (message "My coding config initialized")
+  )
 
 (disable-backups-hook)
 ;(add-hook 'before-save-hook 'delete-trailing-whitespace)
@@ -67,9 +74,9 @@
    css-mode-hook
    emacs-lisp-mode-hook
    js-mode-hook
-   c-mode-hook
+   c-mode-common-hook
    glsl-mode-hook
-   emacs-lisp-mode-hook
+   lua-mode-hook
    ;; etc...
    ))
 
