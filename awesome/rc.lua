@@ -81,6 +81,12 @@ end
 -- Create a laucher widget and a main menu
 myawesomemenu = {
    { "skype", "skype" },
+   { "emacs", "emacs" },
+   { "browser/chromium", "chromium" },
+   { "browser/ff", "firefox" },
+   { "browser/midory", "midory" },
+   { "pidgin", "pidgin" },
+   { "sylpheed", "sylpheed" },
    { "office/writer", "lowriter" },
    { "office/calc", "localc" },
    { "fbreader", "fbreader" },
@@ -289,9 +295,11 @@ globalkeys = awful.util.table.join(
 
     -- my
     awful.key({ "Shift" }, "Shift_R", function() kbdcfg.switch() end),
-    awful.key({ }, "Print", function ()
+    awful.key({ }, "Print",
+       function ()
           awful.util.spawn_with_shell("/home/basiliscos/applications/bin/screenshot-upload.pl")
-    end),
+       end
+    ),
     awful.key({ }, "XF86Sleep", function() awful.util.spawn("sudo pm-suspend") end),
     awful.key({ modkey }, ",", function() awful.util.spawn("mpc play") end),
     awful.key({ modkey }, ".", function() awful.util.spawn("mpc pause") end)
