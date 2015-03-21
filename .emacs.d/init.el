@@ -52,6 +52,7 @@
   (setq tab-width 4)
   (linum-mode 1)
   (sr-speedbar-open)
+  (ggtags-mode 1)
   (message "My coding config initialized")
   )
 
