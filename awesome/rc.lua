@@ -80,28 +80,39 @@ end
 -- {{{ Menu
 -- Create a laucher widget and a main menu
 myawesomemenu = {
-   { "skype", "skype" },
-   { "emacs", "emacs" },
-   { "browser/chromium", "chromium" },
-   { "browser/ff", "firefox" },
-   { "browser/midory", "midory" },
-   { "pidgin", "pidgin" },
-   { "sylpheed", "sylpheed" },
-   { "office/writer", "lowriter" },
-   { "office/calc", "localc" },
-   { "fbreader", "fbreader" },
-   { "MySql Workbench", "mysql-workbench"}, 
-   { "zim", "zim"},
-   { "screenshot", "/home/basiliscos/applications/bin/screenshot-upload.pl"},
-   { "edit config", editor_cmd .. " " .. awesome.conffile },
-   { "restart", awesome.restart },
-   { "quit", awesome.quit }
 }
 
-mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-                                    { "open terminal", terminal }
-                                  }
-                        })
+mymainmenu = awful.menu(
+   { items = {
+        { "awesome", {
+             { "edit config", editor_cmd .. " " .. awesome.conffile },
+             { "restart", awesome.restart },
+             { "quit", awesome.quit }
+             
+                     }, beautiful.awesome_icon },
+        { "net",
+          {
+             { "skype", "skype" },
+             { "chromium", "chromium" },
+             { "ff", "firefox" },
+             { "midory", "midory" },
+             { "pidgin", "pidgin" },
+             { "sylpheed", "sylpheed" },
+          }},
+        { "misc",
+          {
+             { "writer", "lowriter" },
+             { "calc", "localc" },
+             { "fbreader", "fbreader" },
+             { "workbench", "mysql-workbench"}, 
+             { "zim", "zim"},
+             { "screenshot", "/home/basiliscos/applications/bin/screenshot-upload.pl"},
+          }
+        },
+        { "emacs", "emacs" },
+        { "open terminal", terminal }
+   }
+})
 
 mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
                                      menu = mymainmenu })
@@ -431,12 +442,32 @@ client.add_signal("focus", function(c) c.border_color = beautiful.border_focus e
 client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
 
--- {{{ My startup config
+-- {{{ log viewer
+local lognotify = require("lognotify")
 
--- awful.util.spawn(terminal, nil, 1)
--- awful.util.spawn_with_shell("pidgin")
--- awful.util.spawn_with_shell("emacs")
--- awful.util.spawn_with_shell("chromium")
+ilog = lognotify{
+   logs = {
+      system = {
+         file = "/var/log/messages",
+         ignore = {
+            "crond",
+            "CROND",
+            "mpd",
+         },
+      },
+   	},
+   	-- awesome  = { file = "/home/bob/log/awesome",
+   -- Delay between checking in seconds. Default: 1
+   interval = 1,
+   -- Time in seconds after which popup expires. Set 0 for no timeout. Default: 0
+   naughty_timeout = 15
+}
+
+ilog:start()
+-- }}}
+
+
+-- {{{ My startup config
 
 function run_once(prg,arg_string,pname,screen)
     if not prg then
