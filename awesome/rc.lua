@@ -110,6 +110,7 @@ mymainmenu = awful.menu(
           }
         },
         { "emacs", "emacs" },
+        { "textadept", "/home/basiliscos/applications/textadept/textadept" },
         { "open terminal", terminal }
    }
 })
@@ -139,7 +140,7 @@ kbdcfg.widget:buttons(awful.util.table.join(
 
 -- {{{ Wibox
 -- Create a textclock widget
-mytextclock = awful.widget.textclock({ align = "right" }," %d/%m %H:%M:%S ", 1)
+mytextclock = awful.widget.textclock({ align = "right" }," %d/%m(%a) %H:%M:%S ", 1)
 
 -- Create a systray
 mysystray = widget({ type = "systray" })
@@ -402,7 +403,7 @@ awful.rules.rules = {
     -- { rule = { class = "Firefox" },
     --  properties = { tag = tags[1][2] } },
     { rule = { class = "Emacs" }, properties = { tag = tags[1][2], maximized_vertical = true, maximized_horizontal = true } },
-    { rule = { class = "Chromium-browser" }, properties = { tag = tags[1][3], maximized_vertical = true, maximized_horizontal = true } },
+    { rule = { class = "chromium-browser-chromium" }, properties = { tag = tags[1][3], maximized_vertical = true, maximized_horizontal = true } },
     { rule = { class = "Pcmanfm" }, properties = { tag = tags[1][5], maximized_vertical = true, maximized_horizontal = true  } },
     { rule = { class = "Pidgin" }, properties = { tag = tags[1][9] } },
     { rule = { class = "Skype" }, properties = { tag = tags[1][8] } },
@@ -498,6 +499,7 @@ run_once("parcellite")
 run_once("stardict");
 run_once("mpd");
 run_once("pcmanfm");
+run_once("/home/basiliscos/applications/bin/dual-stick.sh");
 
 -- do
 --   local sprogs =
