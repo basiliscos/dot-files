@@ -88,7 +88,7 @@ mymainmenu = awful.menu(
              { "edit config", editor_cmd .. " " .. awesome.conffile },
              { "restart", awesome.restart },
              { "quit", awesome.quit }
-             
+
                      }, beautiful.awesome_icon },
         { "net",
           {
@@ -104,7 +104,7 @@ mymainmenu = awful.menu(
              { "writer", "lowriter" },
              { "calc", "localc" },
              { "fbreader", "fbreader" },
-             { "workbench", "mysql-workbench"}, 
+             { "workbench", "mysql-workbench"},
              { "zim", "zim"},
              { "screenshot", "/home/basiliscos/applications/bin/screenshot-upload.pl"},
           }
@@ -132,7 +132,7 @@ kbdcfg.switch = function ()
    kbdcfg.widget.text = t
    os.execute( kbdcfg.cmd .. t )
 end
-    
+
 -- Mouse bindings
 kbdcfg.widget:buttons(awful.util.table.join(
     awful.button({ }, 1, function () kbdcfg.switch() end)
@@ -479,7 +479,7 @@ function run_once(prg,arg_string,pname,screen)
        pname = prg
     end
 
-    if not arg_string then 
+    if not arg_string then
         awful.util.spawn_with_shell("pgrep -f -u $USER -x '" .. pname .. "' || (" .. prg .. ")",screen)
     else
         awful.util.spawn_with_shell("pgrep -f -u $USER -x '" .. pname .. " ".. arg_string .."' || (" .. prg .. " " .. arg_string .. ")",screen)
@@ -492,7 +492,7 @@ run_once("xset", "r rate 200 150")
 run_once("wicd-gtk", "-t")
 run_once("volumeicon")
 run_once("sylpheed")
-run_once("emacs")
+-- run_once("emacs")
 run_once("chromium-browser")
 run_once("pidgin")
 run_once("parcellite")
