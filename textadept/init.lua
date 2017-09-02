@@ -1,12 +1,25 @@
 ui.set_theme('dark', {font = 'Monospace', fontsize = 12})
 textredux = require 'textredux'
+ctags = require 'ctags'
+
+ctags['/home/basiliscos/development/cpp/cpp-bredis'] = '/home/basiliscos/development/cpp/cpp-bredis/tags'
+
+events.connect(events.LEXER_LOADED, function(lang)
+	buffer.tab_width = 4
+        buffer.wrap_mode = buffer.WRAP_WORD
+end)
 
 
-textadept.editing.AUTOCOMPLETE_ALL = true
-textadept.editing.STRIP_TRAILING_SPACES = true
+textadept.editing.autocomplete_all_words = true
+textadept.editing.strip_trailing_spaces = true
+textadept.editing.auto_pairs[string.byte('<')] = '>'
+textadept.editing.brace_matches[string.byte('<')] = true
+textadept.editing.brace_matches[string.byte('>')] = true
+
+textadept.file_types.extensions.ipp = 'cpp'
 
 -- disable syntax check for perl
-textadept.run.syntax_commands.perl = nil
+-- textadept.run.syntax_commands.perl = nil
 
 textadept.run.run_commands['t'] = function()
    local root = io.get_project_root()
@@ -19,19 +32,36 @@ textadept.run.run_commands['t'] = function()
 
 local _last_buff_idx = -1
 events.connect(events.BUFFER_BEFORE_SWITCH, function(name)
-   _last_buff_idx = _BUFFERS[_G.buffer]
+  _last_buff_idx = _G._BUFFERS[_G.buffer]
 end)
+
+local switch_to_buffer = function()
+    -- print(" => " .. _last_buff_idx)
+    _G.view:goto_buffer(_G._BUFFERS[_last_buff_idx], false)
+end
+
+local _save_all = function()
+  local idx = _last_buff_idx
+  io.save_all_files()
+  _last_buff_idx = idx
+end
 
 keys.ca, keys.cA = buffer.vc_home, buffer.vc_home_extend
 keys.ce, keys.cE = buffer.line_end, buffer.line_end_extend
 keys.ck, keys.cK = buffer.line_delete
 keys.cd, keys.cD = buffer.clear
 keys.aw, keys.aW = buffer.copy
+keys.ch		 = textadept.editing.highlight_word
 keys.cw          = buffer.cut
 keys.cW          = io.close_buffer
-keys.cs          = io.save_all_files
+keys.cs          = _save_all
 keys.cy, keys.cY = buffer.paste
 keys.c_          = buffer.undo
-keys["c`"]       = function() _G.view:goto_buffer(_last_buff_idx, false) end
-keys.co          = textredux.fs.open_file
+keys["c`"]       = switch_to_buffer
+keys["cJ"]       = ctags.goto_tag
+keys["c<"]       = function() ctags.goto_tag(nil, true) end
+keys["c>"]       = function() ctags.goto_tag(nil, false) end
+keys["c,"]       = function() textadept.editing.autocomplete('ctag') end
+keys.cO          = textredux.fs.open_file
+keys.co          = io.open_file
 

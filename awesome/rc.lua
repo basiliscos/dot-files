@@ -105,6 +105,7 @@ mymainmenu = awful.menu(
              { "midory", "midory" },
              { "pidgin", "pidgin" },
              { "sylpheed", "sylpheed" },
+             { "transmission", "transmission-gtk" },
           }},
         { "misc",
           {
@@ -113,7 +114,8 @@ mymainmenu = awful.menu(
              { "fbreader", "fbreader" },
              { "workbench", "mysql-workbench"},
              { "zim", "zim"},
-             { "screenshot", "/home/basiliscos/applications/bin/screenshot-upload.pl"},
+             { "VirtualBox", "VirtualBox" },
+             { "screenshot", "/home/basiliscos/applications/scripts/screenshot-upload.pl"},
           }
         },
         { "emacs", "emacs" },
@@ -232,9 +234,9 @@ for s = 1, screen.count() do
 
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
-    if s == 1 then right_layout:add(wibox.widget.systray()) end
     right_layout:add(kbdcfg.widget)
     right_layout:add(mytextclock)
+    if s == 1 then right_layout:add(wibox.widget.systray()) end
     right_layout:add(mylayoutbox[s])
 
     -- Now bring it all together (with the tasklist in the middle)
@@ -324,7 +326,8 @@ globalkeys = awful.util.table.join(
     awful.key({ "Shift" }, "Shift_R", function() kbdcfg.switch() end),
     awful.key({ }, "Print",
        function ()
-          awful.util.spawn_with_shell("/home/basiliscos/applications/bin/screenshot-upload.pl")
+          awful.util.spawn_with_shell("/home/basiliscos/applications/scripts/screenshot-upload.pl")
+          -- awful.util.spawn_with_shell("/usr/bin/notify-send -t 5000 hi")
        end
     ),
     awful.key({ }, "XF86Sleep", function() awful.util.spawn("sudo pm-suspend") end),
@@ -554,4 +557,5 @@ run_once("parcellite")
 run_once("stardict");
 run_once("mpd");
 run_once("pcmanfm");
-run_once("/home/basiliscos/applications/bin/dual-stick.sh");
+run_once("/home/basiliscos/applications/scripts/dual-stick.sh");
+run_once("/home/basiliscos/applications/scripts/batt-level-notify.pl");
