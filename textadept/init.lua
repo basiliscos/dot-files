@@ -1,12 +1,10 @@
 ui.set_theme('dark', {font = 'Monospace', fontsize = 12})
 textredux = require 'textredux'
-ctags = require 'ctags'
-
-ctags['/home/basiliscos/development/cpp/cpp-bredis'] = '/home/basiliscos/development/cpp/cpp-bredis/tags'
 
 events.connect(events.LEXER_LOADED, function(lang)
-	buffer.tab_width = 4
-        buffer.wrap_mode = buffer.WRAP_WORD
+    local w = (lang == 'elixir') and 2 or 4
+    buffer.tab_width = w
+    buffer.wrap_mode = buffer.WRAP_WORD
 end)
 
 
@@ -58,10 +56,6 @@ keys.cs          = _save_all
 keys.cy, keys.cY = buffer.paste
 keys.c_          = buffer.undo
 keys["c`"]       = switch_to_buffer
-keys["cJ"]       = ctags.goto_tag
-keys["c<"]       = function() ctags.goto_tag(nil, true) end
-keys["c>"]       = function() ctags.goto_tag(nil, false) end
-keys["c,"]       = function() textadept.editing.autocomplete('ctag') end
 keys.cO          = textredux.fs.open_file
 keys.co          = io.open_file
 

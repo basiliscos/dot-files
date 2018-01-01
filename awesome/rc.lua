@@ -161,7 +161,7 @@ local mynetdown = lain.widget.net {
     units = 1048576,
     settings = function()
         local in_data = markup.fg.color('#00FF00', string.format('%0.2f', net_now.received))
-        local net_markup = string.format("[⚲ %s mb/s]", in_data)
+        local net_markup = string.format("[%s mb/s]", in_data)
         widget:set_markup(net_markup)
     end
 }
@@ -190,7 +190,7 @@ gears.timer {
     callback  = function()
         local cmd = [[ip -4 -o addr show wlp3s0 | awk '{printf $4}' | cut -d/ -f1 -z]]
         awful.spawn.easy_async_with_shell(cmd, function(stdout, stderr, reason, exit_code)
-            ip_addr.markup = string.format("[%s]", markup.fg.color('#FFFFFF', stdout))
+            ip_addr.markup = string.format("[%s] ", markup.fg.color('#FFFFFF', stdout))
         end)
     end
 }
