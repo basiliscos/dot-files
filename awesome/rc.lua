@@ -188,7 +188,7 @@ gears.timer {
     call_now  = true,
     autostart = true,
     callback  = function()
-        local cmd = [[ip -4 -o addr show wlp3s0 | awk '{printf $4}' | cut -d/ -f1 -z]]
+        local cmd = [[ip -4 -o addr show wlp2s0 | awk '{printf $4}' | cut -d/ -f1 -z]]
         awful.spawn.easy_async_with_shell(cmd, function(stdout, stderr, reason, exit_code)
             ip_addr.markup = string.format("[%s] ", markup.fg.color('#FFFFFF', stdout))
         end)
@@ -422,7 +422,7 @@ globalkeys = gears.table.join(
     awful.key({ "Shift" }, "Shift_R", function() kbdcfg.switch() end),
     awful.key({ }, "Print",
        function ()
-          awful.util.spawn_with_shell("/home/basiliscos/applications/scripts/screenshot-upload.pl")
+          awful.util.spawn_with_shell("/home/b/apps/imgur-screenshot/imgur-screenshot.sh")
           -- awful.util.spawn_with_shell("/usr/bin/notify-send -t 5000 hi")
        end
     ),
@@ -438,7 +438,7 @@ clientkeys = gears.table.join(
             c:raise()
         end,
         {description = "toggle fullscreen", group = "client"}),
-    awful.key({ modkey,           }, "F4",     function (c) c:kill()                         end,
+    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end,
               {description = "close", group = "client"}),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ,
               {description = "toggle floating", group = "client"}),
@@ -696,6 +696,7 @@ function run_once(prg,arg_string,pname,screen)
     end
 end
 
+run_once("/usr/bin/syndaemon", "-i 0.5")
 run_once("/home/b/apps/scripts/dual-stick.sh")
 run_once("goldendict")
 run_once("mpd")
