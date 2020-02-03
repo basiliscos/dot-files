@@ -194,7 +194,15 @@ gears.timer {
         end)
     end
 }
-
+local volume = lain.widget.pulse {
+    settings = function()
+        vlevel = " [" .. volume_now.left .. "-" .. volume_now.right .. "%] "
+        if volume_now.muted == "yes" then
+            vlevel = vlevel .. " M"
+        end
+        widget:set_markup(lain.util.markup("#7493d2", vlevel))
+    end
+}
 
 -- {{{ Wibar
 -- Create a textclock widget
@@ -300,6 +308,7 @@ awful.screen.connect_for_each_screen(function(s)
             mynetdown.widget,
             memory.widget,
             cpu.widget,
+            volume.widget,
             battery.widget,
             kbdcfg.widget,
             wibox.widget.systray(),
@@ -418,12 +427,24 @@ globalkeys = gears.table.join(
     awful.key({ modkey }, "p", function() menubar.show() end,
               {description = "show the menubar", group = "launcher"}),
 
+    -- Volume keys
+    awful.key({ modkey }, "Up",
+        function ()
+            os.execute(string.format("pactl set-sink-volume %d +1%%", volume.device))
+            volume.update()
+        end),
+    awful.key({ modkey }, "Down",
+        function ()
+            os.execute(string.format("pactl set-sink-volume %d -1%%", volume.device))
+            volume.update()
+        end),
+
     -- my
     awful.key({ "Shift" }, "Shift_R", function() kbdcfg.switch() end),
     awful.key({ }, "Print",
        function ()
           awful.util.spawn_with_shell("/home/b/apps/imgur-screenshot/imgur-screenshot.sh")
-          -- awful.util.spawn_with_shell("/usr/bin/notify-send -t 5000 hi")
+          -- awful.util.spawn_with_shell("/home/b/development/perl/p5-monosnap/monosnap.pl")
        end
     ),
     awful.key({ }, "XF86Sleep", function() awful.util.spawn("sudo zzz") end),
@@ -698,10 +719,10 @@ end
 
 run_once("/usr/bin/syndaemon", "-i 0.5")
 run_once("/home/b/apps/scripts/dual-stick.sh")
-run_once("goldendict")
+-- run_once("goldendict")
 run_once("mpd")
 run_once("xset", "r rate 200 150")
-run_once("wicd-gtk", "-t")
+-- run_once("wicd-gtk", "-t")
 -- run_once("volumeicon")
 -- run_once("claws-mail")
 -- run_once("firefox")
