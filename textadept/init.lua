@@ -1,4 +1,4 @@
-ui.set_theme('dark', {font = 'Monospace', fontsize = 12})
+buffer:set_theme('dark', {font = 'Monospace', fontsize = 12})
 textredux = require 'textredux'
 
 events.connect(events.LEXER_LOADED, function(lang)
