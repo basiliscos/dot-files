@@ -1,0 +1,11 @@
+add-highlighter global/ number-lines
+add-highlighter global/wrap wrap
+set global tabstop 4
+set global indentwidth 4
+map global insert <tab> '<a-;><gt>'
+map global insert <s-tab> '<a-;><lt>'
+map global insert <c-tab> '<tab>'
+source "%val{config}/plugins/smarttab.kak/rc/smarttab.kak"
+hook global BufWritePre .* %{ expandtab }
+
+map global user y '<a-|>xsel -i -b<ret>'
