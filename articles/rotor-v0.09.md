@@ -205,6 +205,41 @@ changed in the new `rotor` version: there is a need of define payload, message
 (including request and response types), define methods which will accept the messages,
 and finally subscribe to them.
 
+Let's bind everything together in a `main.cpp`. Let's assume that `boost::asio` even loop
+will be used.
+
+~~~{.cpp}
+    namespace asio = boost::asio;
+    namespace r = rotor;
+
+    ...
+    asio::io_context io_context;
+    auto system_context = rotor::asio::system_context_asio_t(io_context)
+    auto strand = std::make_shared<asio::io_context::strand>(io_context);
+    auto timeout = r::pt::milliseconds(100);
+    auto sup = system_context->create_supervisor<r::asio::supervisor_asio_t>()
+                   .timeout(timeout)
+                   .strand(strand)
+                   .create_registry()
+                   .finish();
+
+    sup->create_actor<db_actor_t>().timeout(timeout).finish();
+    sup->create_actor<acceptor_actor_t>().timeout(timeout).finish();
+
+    sup->start();
+    io_context.run();
+~~~
+
+The `builder` pattern is activly used in `v0.09` in [rotor](https://github.com/basiliscos/cpp-rotor).
+Here the root supervisor `sup` was created. On it 3 actors were instantiated: the user defined
+`db_actor_t` and `acceptor_actor_t` and implicitly created registry actor. As usual in actor system
+all actors are decoupled each from other, they share only message types (skipped here).
+
+The runtime configuration can be completely different: actors can be created on different threads,
+different supervisors, and even using different event loops, but the actors implementation remains
+the same (5). In that cases, there will be more then one
+root supervisors; however to let them find each other the `registry` actor address should be shared
+between them. That is also supported via the `get_registry_address()` method of `supervisor_t`.
 
 
 ### Notes
@@ -221,3 +256,6 @@ will be invoked, which by default will print error to `std::cerr` and invoke `st
 avoid contract violation, shutdown timeouts should be tuned to allow client-actors unlink in time.
 
 (4) During shutdown the `registry_plugin_t` will unregister all registered names in the `registry`.
+
+(5) With the exception, when different event loops are used. When actors use event loop API direcly,
+they will, obviosly, change with event loop change, but that's outside of rotor.
