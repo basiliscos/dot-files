@@ -58,9 +58,10 @@ the pluginization system (appeared with `v0.09` release) comes to help:
 
 That is much more convenient, since `link_client_plugin_t` is included out of the box to the
 `rotor::actor_base_t`.  Nevertheless, it's not enough you want to have, because it does not answers
-two important questions: 1) **When** actors linking is performed (and it's co-question -- when actors
-**unlinking** is performed)? 2) **What** will happen if the target actor (aka "server") does not
-exist or rejects linking?
+two important questions: 1) When actors linking is performed (and it's co-question -- when actors
+**unlinking** is performed)? 2) What will happen if the target actor (aka "server") does not
+exist or rejects linking? 3) What will happen if the target actor decides to shut self down,
+when there are linked to it clients?
 
 To answer to the questions, the concept of actors lifetime should be refreshed.
 
@@ -95,6 +96,117 @@ in [sobjectizer](https://github.com/Stiffstream/sobjectizer) there is a
 plays a similar role as `S-phase` above, however it is limited to one actor only and no `I-phase`
 because [sobjectizer](https://github.com/Stiffstream/sobjectizer) has no hierarchies concept.
 
+During [rotor](https://github.com/basiliscos/cpp-rotor) usage it was discovered, that in a progress
+of `I-phase` (`S-phase`) potentially *many* resources should be acquired (released) asynchronously,
+what means that no single component (or actor by it's own will) is able to answer the question,
+that it completed the current phase. Instead, the answer is the result of collaborative efforts,
+handled in the right order. And here **plugins** come into play; they are a kind of pieces, each one
+is responsible for particular job of initialization/shutdown.
+
+So, the promised answers, related to `link_client_plugin_t` are:
+
+- Q: When actors linking (unlinking) is performed? A: When actor state is `initalizing` (`shutting down`).
+
+- Q: What will happen if the target actor (aka "server") does not exist or rejects linking? A: As this happens
+when actor state is `initalizing`, the plugin will detect the fail condition and will trigger client-actor
+shutdown. That will possibly trigger cascade effect, i.e. its supervisor will trigger to shutdown too.
+
+- Q: What will happen if the target actor decides to shut self down, when there are linked to it clients?
+A: The "server-actor" will ask it's clients to unlink, and only when all clients confirmed unlinking,
+the "server-actor" will contunue shutdown procedure (3).
+
+### Simplified example
+
+Let's assume that there is a database driver with async-interface with one of available event-loops for `rotor`
+and there will be TCP-clients  connecting to our service. The database will be served by `db_actor_t` and
+the service for serving clients will be named `acceptor_t`. The database actor will be like this
+
+~~~{.cpp}
+    namespace r = rotor;
+
+    struct db_actor_t: r::actor_base_t {
+
+        struct resource {
+            static const constexpr r::plugin::resource_id_t db_connection = 0;
+        }
+
+        void configure(r::plugin::plugin_base_t &plugin) noexcept override {
+            plugin.with_casted<r::plugin::registry_plugin_t>([this](auto &p) {
+                p.register_name("service::database", this->get_address())
+            });
+            plugin.with_casted<r::plugin::registry_plugin_t>([this](auto &) {
+                resources->acquire(resource::db_connection);
+                // initiate async connection to database
+            });
+        }
+
+        void on_db_connection_success() {
+            resources->release(resource::db_connection);
+            ...
+        }
+
+        void on_db_disconnected() {
+            resources->release(resource::db_connection);
+        }
+
+        void shutdown_start() noexcept override {
+            r::actor_base_t::shutdown_start();
+            resources->acquire(resource::db_connection);
+            // initiate async disconnection from database, e.g. flush data
+        }
+    };
+~~~
+
+The inner namespace `resource` is used to identify the database connection as resource.
+It is good practice, istead of hard-coding magic numbers like `0`. During the actor
+configuration stage (which is the part of initialization), when `registry_plugin_t` is ready,
+it will asynchronously register the actor address under symbolic name `service::database`
+in the `registry` (will be shown below). Then, with `registry_plugin_t` it acquires
+database connection resource, blocking the further initialization and starting connection
+to a database. When it is established, the resource will be released, and the `db_actor_t`
+will become `operational`. The `S-phase` is symmetrical, i.e. it blocks shutdown until
+all data will be flushed to DB and connection will be closed; only after that step,
+the actor will continue shutdown (4).
+
+The client acceptor code should be like:
+
+~~~{.cpp}
+    namespace r = rotor;
+    struct acceptor_actor_t: r::actor_base_t {
+        r::address_ptr_t db_addr;
+
+        void configure(r::plugin::plugin_base_t &plugin) noexcept override {
+            plugin.with_casted<r::plugin::registry_plugin_t>([](auto &p) {
+                p.discover_name("service::database", db_addr, true).link();
+            });
+        }
+
+        void on_start() noexcept override {
+            r::actor_base_t::on_start();
+            // start accepting clients, e.g.
+            // asio::ip::tcp::acceptor.async_accept(...);
+        }
+
+        void on_new_client(client_t& client) {
+            // send<message::log_client_t>(db_addr, client)
+        }
+    };
+~~~
+
+The key point here is the `configure` method. When `registry_plugin_t` is ready,
+it will be configured to discover name `service::database` and, when found,
+store it in the field `db_addr` and then it will link the actor to the `db_actor_t`.
+If `service::database` will not be found, the acceptor will shutdown (i.e. `on_start`
+will not be invoked); if the linking will not be confirmed, the acceptor will shutdown
+too. When everything is fine, the acceptor will start accepting new clients.
+
+The operational part itself is missing in the sake of brevity, because it wasn't
+changed in the new `rotor` version: there is a need of define payload, message
+(including request and response types), define methods which will accept the messages,
+and finally subscribe to them.
+
+
+
 ### Notes
 
 (1) Currently it will lead to segfault upon attempt to deliver a message to an actor, which supervisor
@@ -103,4 +215,9 @@ is already destroyed.
 (2) If it will not notify, init-request timeout will occur, and the actor will be asked by supervisor
 to shutdown, i.e. bypass the `operational` state.
 
+(3) You might ask: what will happen, if a client-actor will not confirm unlink in time? Well, this is
+somewhat a violation of contract, and the method `system_context_t::on_error(const std::error_code&)`
+will be invoked, which by default will print error to `std::cerr` and invoke `std::terminate()`. To
+avoid contract violation, shutdown timeouts should be tuned to allow client-actors unlink in time.
 
+(4) During shutdown the `registry_plugin_t` will unregister all registered names in the `registry`.
