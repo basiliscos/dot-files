@@ -1,12 +1,11 @@
-# What's new in rotor v0.09
+## What's new in rotor v0.09
 
-Summary:
+## Teaser
 
-- actors linking (aka connection establishment)
-- clean **asynchronous** and composeable actor (and supervisor) initialization and shutdown (via pluginization)
-- simplified registry actor usage (to lookup actor address by name)
-- actor config builder pattern
-- new private properties access system
+[rotor](https://github.com/basiliscos/cpp-rotor) is non-intrusive event loop friendly C++ actor
+micro framework, similar to its elder brothers like [caf](https://actor-framework.org/) and
+[sobjectizer](https://github.com/Stiffstream/sobjectizer). The new release came out under the
+flag of **pluginization**, which affects all lifetime of an actor.
 
 ## Actors linking
 
@@ -115,7 +114,7 @@ shutdown. That will possibly trigger cascade effect, i.e. its supervisor will tr
 A: The "server-actor" will ask it's clients to unlink, and only when all clients confirmed unlinking,
 the "server-actor" will contunue shutdown procedure (3).
 
-### Simplified example
+## Simplified example
 
 Let's assume that there is a database driver with async-interface with one of available event-loops for `rotor`
 and there will be TCP-clients  connecting to our service. The database will be served by `db_actor_t` and
@@ -134,7 +133,7 @@ the service for serving clients will be named `acceptor_t`. The database actor w
             plugin.with_casted<r::plugin::registry_plugin_t>([this](auto &p) {
                 p.register_name("service::database", this->get_address())
             });
-            plugin.with_casted<r::plugin::registry_plugin_t>([this](auto &) {
+            plugin.with_casted<r::plugin::resources_plugin_t>([this](auto &) {
                 resources->acquire(resource::db_connection);
                 // initiate async connection to database
             });
@@ -241,6 +240,23 @@ the same (5). In that cases, there will be more then one
 root supervisors; however to let them find each other the `registry` actor address should be shared
 between them. That is also supported via the `get_registry_address()` method of `supervisor_t`.
 
+## Summary
+
+The most important feature of [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09` is is the
+pluginization of it's core. Among the other [plugins](https://basiliscos.github.io/cpp-rotor-docs/index.html)
+the most important are: `link_client_t` plugin which maintains kind a "virtual connection" between
+actors, `link_client_plugin_t` which allows to register and discover actor addreses by their
+symbolic names and the `resources_plugin_t`, which suspends actor init/shutdown until external
+asynchronous events will happen.
+
+There is less important changes in the relese, like new non-public properties
+[access](https://basiliscos.github.io/blog/2020/07/23/permission-model/) and builder pattern for
+actors construction.
+
+Any feedback on rotor is welcome!
+
+PS. I'd like to say thanks for [crazypanda.ru](https://crazypanda.ru) for supporting me in my
+actor model researches.
 
 ### Notes
 
