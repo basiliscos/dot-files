@@ -2,8 +2,9 @@
 
 ## Teaser
 
-[rotor](https://github.com/basiliscos/cpp-rotor) is non-intrusive event loop friendly C++ actor
-micro framework, similar to its elder brothers like [caf](https://actor-framework.org/) and
+[rotor](https://github.com/basiliscos/cpp-rotor) is
+[non-intrusive](https://basiliscos.github.io/cpp-rotor-docs/md__home_b_development_cpp_cpp-rotor_docs_Rationale.html)
+event loop friendly C++ actor micro framework, similar to its elder brothers like [caf](https://actor-framework.org/) and
 [sobjectizer](https://github.com/Stiffstream/sobjectizer). The new release came out under the
 flag of **pluginization**, which affects all lifetime of an actor.
 
