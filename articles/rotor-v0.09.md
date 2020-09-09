@@ -16,10 +16,11 @@ the actor should **be alive** (1); in other words if actor `A` is going to send 
 it should be somewhow be sure, that actor `B` is online and will not go offline when during message `M`
 routing.
 
-Before `rotor` `v0.09` that kind of warranty was only available due to child-parent relations, i.e. between
-supervisor and it child-actor, namely an actor was sure that a message will be delivered to supervisor,
-because the supervisor *owns* the actor. Since `v0.09` it is possible to link actor `A` with actor `B`,
-to make sure, that after successful linking all messages will be delivered.
+Before [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09` that kind of warranty was only available due
+to child-parent relations, i.e. between supervisor and it child-actor, namely an actor was sure that a
+message will be delivered to supervisor, because the supervisor *owns* the actor and its supervisors lifetime
+covers actors lifetime. Since `v0.09` it  is possible to link actor `A` with actor `B`, to make sure, that
+after successful linking all messages will be delivered.
 
 So, the actors linking should be performed something like:
 
@@ -58,7 +59,7 @@ the pluginization system (appeared with `v0.09` release) comes to help:
 
 That is much more convenient, since `link_client_plugin_t` is included out of the box to the
 `rotor::actor_base_t`.  Nevertheless, it's not enough you want to have, because it does not answers
-two important questions: 1) When actors linking is performed (and it's co-question -- when actors
+important questions: 1) When actors linking is performed (and it's co-question -- when actors
 **unlinking** is performed)? 2) What will happen if the target actor (aka "server") does not
 exist or rejects linking? 3) What will happen if the target actor decides to shut self down,
 when there are linked to it clients?
@@ -243,10 +244,10 @@ between them. That is also supported via the `get_registry_address()` method of 
 
 ## Summary
 
-The most important feature of [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09` is is the
-pluginization of it's core. Among the other [plugins](https://basiliscos.github.io/cpp-rotor-docs/index.html)
-the most important are: `link_client_t` plugin which maintains kind a "virtual connection" between
-actors, `link_client_plugin_t` which allows to register and discover actor addreses by their
+The most important feature of [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09` is the
+pluginization of its core. Among the other [plugins](https://basiliscos.github.io/cpp-rotor-docs/index.html)
+the most important are: `link_client_plugin_t` plugin which maintains kind a "virtual connection" between
+actors, `registry_plugin_t` which allows to register and discover actor addreses by their
 symbolic names and the `resources_plugin_t`, which suspends actor init/shutdown until external
 asynchronous events will happen.
 
