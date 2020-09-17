@@ -69,7 +69,7 @@ To answer to the questions, the concept of actors lifetime should be refreshed.
 ## Async actor initialization and shutdown
 
 The simplified picture is: an actor state usually changes as:
-`new` (ctor) -> `initializing` -> `initialized` -> `operational` -> `shutting down` -> `shutted down`
+`new` (ctor) -> `initializing` -> `initialized` -> `operational` -> `shutting down` -> `shut down`
 
 The main job is performed in `operational` state, and it is up to a user to define what an actor
 will do on up-and-running mode.
@@ -77,9 +77,9 @@ will do on up-and-running mode.
 In the **I-phase** (i.e. `initializing` -> `initialized`), actor should prepare itself for further seving:
 locate and link other actors, establish connection to a database, acquire what ever resources it
 needs to be operational. The key point of [rotor](https://github.com/basiliscos/cpp-rotor), that I-phase
-is **asynchronous**, so it should notify its supervisor when it is ready (2).
+is **asynchronous**, so an actor should notify its supervisor when it is ready (2).
 
-The **S-phase** (i.e. `shutting down` -> `shutted down`) is complementary to the **I-phase**, i.e.
+The **S-phase** (i.e. `shutting down` -> `shut down`) is complementary to the **I-phase**, i.e.
 actor is being asked for shutdown, and, when it is done, it should notify its supervisor.
 
 While it sounds easy, the complexity lies in the **composability** of actors, while they form
@@ -88,7 +88,7 @@ erlang-like hierarchies of responsibilities (see my article
 words, any actor is able to fail during `I-phase` or `S-phase`, and that could lead to
 clean asynchronous collapse of whole hierarchy, independently where the failed actor was located
 in it. It can be told, that either whole hierary of actors becomes `operational`, or, if something
-happesn the whole hierarchy becomes `shutted down`.
+happesn the whole hierarchy becomes `shut down`.
 
 [rotor](https://github.com/basiliscos/cpp-rotor) seems unique with its init/shutdown approach.
 There is nothing similar in [caf](https://actor-framework.org/);
