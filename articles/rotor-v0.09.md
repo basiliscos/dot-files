@@ -25,18 +25,18 @@ after successful linking all messages will be delivered.
 So, the actors linking should be performed something like:
 
 ~~~{.cpp}
-    namespace r = rotor;
+namespace r = rotor;
 
-    void some_actor_t::on_start() noexcept override {
-        request<payload::link_request_t>(b_address).send(timeout);
-    }
+void some_actor_t::on_start() noexcept override {
+    request<payload::link_request_t>(b_address).send(timeout);
+}
 
-    void some_actor_t::on_link_response(r::message::link_response_t &response) noexcept {
-        auto& ec = message.payload.ec;
-        if (!ec) {
-            // successfull linking
-        }
+void some_actor_t::on_link_response(r::message::link_response_t &response) noexcept {
+    auto& ec = message.payload.ec;
+    if (!ec) {
+        // successfull linking
     }
+}
 ~~~
 
 However, the code like this should not be used direcly as is... because it is unconvenient. It becomes
@@ -45,16 +45,16 @@ should keep an internal counter how many target actors are waiting (successful) 
 the pluginization system (appeared with `v0.09` release) comes to help:
 
 ~~~{.cpp}
-    namespace r = rotor;
+namespace r = rotor;
 
-    void some_actor_t::configure(r::plugin::plugin_base_t &plugin) noexcept override {
-        plugin.with_casted<r::plugin::link_client_plugin_t>(
-            [&](auto &p) {
-                p.link(B1_address);
-                p.link(B2_address);
-            }
-        );
-    }
+void some_actor_t::configure(r::plugin::plugin_base_t &plugin) noexcept override {
+    plugin.with_casted<r::plugin::link_client_plugin_t>(
+        [&](auto &p) {
+            p.link(B1_address);
+            p.link(B2_address);
+        }
+    );
+}
 ~~~
 
 That is much more convenient, since `link_client_plugin_t` is included out of the box to the
@@ -123,46 +123,46 @@ and there will be TCP-clients  connecting to our service. The database will be s
 the service for serving clients will be named `acceptor_t`. The database actor will be like this
 
 ~~~{.cpp}
-    namespace r = rotor;
+namespace r = rotor;
 
-    struct db_actor_t: r::actor_base_t {
+struct db_actor_t: r::actor_base_t {
 
-        struct resource {
-            static const constexpr r::plugin::resource_id_t db_connection = 0;
-        }
+    struct resource {
+        static const constexpr r::plugin::resource_id_t db_connection = 0;
+    }
 
-        void configure(r::plugin::plugin_base_t &plugin) noexcept override {
-            plugin.with_casted<r::plugin::registry_plugin_t>([this](auto &p) {
-                p.register_name("service::database", this->get_address())
-            });
-            plugin.with_casted<r::plugin::resources_plugin_t>([this](auto &) {
-                resources->acquire(resource::db_connection);
-                // initiate async connection to database
-            });
-        }
-
-        void on_db_connection_success() {
-            resources->release(resource::db_connection);
-            ...
-        }
-
-        void on_db_disconnected() {
-            resources->release(resource::db_connection);
-        }
-
-        void shutdown_start() noexcept override {
-            r::actor_base_t::shutdown_start();
+    void configure(r::plugin::plugin_base_t &plugin) noexcept override {
+        plugin.with_casted<r::plugin::registry_plugin_t>([this](auto &p) {
+            p.register_name("service::database", this->get_address())
+        });
+        plugin.with_casted<r::plugin::resources_plugin_t>([this](auto &) {
             resources->acquire(resource::db_connection);
-            // initiate async disconnection from database, e.g. flush data
-        }
-    };
+            // initiate async connection to database
+        });
+    }
+
+    void on_db_connection_success() {
+        resources->release(resource::db_connection);
+        ...
+    }
+
+    void on_db_disconnected() {
+        resources->release(resource::db_connection);
+    }
+
+    void shutdown_start() noexcept override {
+        r::actor_base_t::shutdown_start();
+        resources->acquire(resource::db_connection);
+        // initiate async disconnection from database, e.g. flush data
+    }
+};
 ~~~
 
 The inner namespace `resource` is used to identify the database connection as resource.
 It is good practice, istead of hard-coding magic numbers like `0`. During the actor
 configuration stage (which is the part of initialization), when `registry_plugin_t` is ready,
 it will asynchronously register the actor address under symbolic name `service::database`
-in the `registry` (will be shown below). Then, with `registry_plugin_t` it acquires
+in the `registry` (will be shown below). Then, with `resources_plugin_t` it acquires
 database connection resource, blocking the further initialization and starting connection
 to a database. When it is established, the resource will be released, and the `db_actor_t`
 will become `operational`. The `S-phase` is symmetrical, i.e. it blocks shutdown until
@@ -172,26 +172,26 @@ the actor will continue shutdown (4).
 The client acceptor code should be like:
 
 ~~~{.cpp}
-    namespace r = rotor;
-    struct acceptor_actor_t: r::actor_base_t {
-        r::address_ptr_t db_addr;
+namespace r = rotor;
+struct acceptor_actor_t: r::actor_base_t {
+    r::address_ptr_t db_addr;
 
-        void configure(r::plugin::plugin_base_t &plugin) noexcept override {
-            plugin.with_casted<r::plugin::registry_plugin_t>([](auto &p) {
-                p.discover_name("service::database", db_addr, true).link();
-            });
-        }
+    void configure(r::plugin::plugin_base_t &plugin) noexcept override {
+        plugin.with_casted<r::plugin::registry_plugin_t>([](auto &p) {
+            p.discover_name("service::database", db_addr, true).link();
+        });
+    }
 
-        void on_start() noexcept override {
-            r::actor_base_t::on_start();
-            // start accepting clients, e.g.
-            // asio::ip::tcp::acceptor.async_accept(...);
-        }
+    void on_start() noexcept override {
+        r::actor_base_t::on_start();
+        // start accepting clients, e.g.
+        // asio::ip::tcp::acceptor.async_accept(...);
+    }
 
-        void on_new_client(client_t& client) {
-            // send<message::log_client_t>(db_addr, client)
-        }
-    };
+    void on_new_client(client_t& client) {
+        // send<message::log_client_t>(db_addr, client)
+    }
+};
 ~~~
 
 The key point here is the `configure` method. When `registry_plugin_t` is ready,
@@ -210,25 +210,25 @@ Let's bind everything together in a `main.cpp`. Let's assume that `boost::asio` 
 will be used.
 
 ~~~{.cpp}
-    namespace asio = boost::asio;
-    namespace r = rotor;
+namespace asio = boost::asio;
+namespace r = rotor;
 
-    ...
-    asio::io_context io_context;
-    auto system_context = rotor::asio::system_context_asio_t(io_context)
-    auto strand = std::make_shared<asio::io_context::strand>(io_context);
-    auto timeout = r::pt::milliseconds(100);
-    auto sup = system_context->create_supervisor<r::asio::supervisor_asio_t>()
-                   .timeout(timeout)
-                   .strand(strand)
-                   .create_registry()
-                   .finish();
+...
+asio::io_context io_context;
+auto system_context = rotor::asio::system_context_asio_t(io_context)
+auto strand = std::make_shared<asio::io_context::strand>(io_context);
+auto timeout = r::pt::milliseconds(100);
+auto sup = system_context->create_supervisor<r::asio::supervisor_asio_t>()
+               .timeout(timeout)
+               .strand(strand)
+               .create_registry()
+               .finish();
 
-    sup->create_actor<db_actor_t>().timeout(timeout).finish();
-    sup->create_actor<acceptor_actor_t>().timeout(timeout).finish();
+sup->create_actor<db_actor_t>().timeout(timeout).finish();
+sup->create_actor<acceptor_actor_t>().timeout(timeout).finish();
 
-    sup->start();
-    io_context.run();
+sup->start();
+io_context.run();
 ~~~
 
 The `builder` pattern is activly used in `v0.09` in [rotor](https://github.com/basiliscos/cpp-rotor).
