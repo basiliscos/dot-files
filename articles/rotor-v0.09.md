@@ -215,7 +215,7 @@ namespace r = rotor;
 
 ...
 asio::io_context io_context;
-auto system_context = rotor::asio::system_context_asio_t(io_context)
+auto system_context = rotor::asio::system_context_asio_t(io_context);
 auto strand = std::make_shared<asio::io_context::strand>(io_context);
 auto timeout = r::pt::milliseconds(100);
 auto sup = system_context->create_supervisor<r::asio::supervisor_asio_t>()
@@ -235,6 +235,9 @@ The `builder` pattern is activly used in `v0.09` in [rotor](https://github.com/b
 Here the root supervisor `sup` was created. On it 3 actors were instantiated: the user defined
 `db_actor_t` and `acceptor_actor_t` and implicitly created registry actor. As usual in actor system
 all actors are decoupled each from other, they share only message types (skipped here).
+
+All actors are simply created here and supervisor knows not the relations between them, because
+actors are loosely coupled and became more automonous since `v0.09`.
 
 The runtime configuration can be completely different: actors can be created on different threads,
 different supervisors, and even using different event loops, but the actors implementation remains

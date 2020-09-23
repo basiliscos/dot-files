@@ -4,8 +4,8 @@
 
 [rotor](https://github.com/basiliscos/cpp-rotor) -
 [ненавязчивый](https://basiliscos.github.io/cpp-rotor-docs/md__home_b_development_cpp_cpp-rotor_docs_Rationale.html)
-С++ акторный микрофремворк, похожий на своих старших братьев -[caf](https://actor-framework.org/) и
-[sobjectizer](https://github.com/Stiffstream/sobjectizer). В новый релиз внутреннее ядро полностью было переделано с помощью
+С++ акторный микрофремворк, похожий на своих старших братьев - [caf](https://actor-framework.org/) и
+[sobjectizer](https://github.com/Stiffstream/sobjectizer). В новом релизе внутреннее ядро полностью было переделано с помощью
 **механизмов плагинов**, так что это затронуло жизненный цикл акторов.
 
 ## Связывание акторов
@@ -73,7 +73,7 @@ void some_actor_t::configure(r::plugin::plugin_base_t &plugin) noexcept override
 Основная работа осуществляется актором, когда он находится в состоянии `operational`, и здесь
 собственно пользователь фреймворка должен решить, чем именно будет заниматься актор.
 
-Во время фазы инициализации (**I-фазы*, т. е. `initializing` -> `initialized`), актор
+Во время фазы инициализации (**I-фазы**, т. е. `initializing` -> `initialized`), актор
 подготавливает себя для будущей работы: находит и связывается с другими акторами,
 устанавливает соединение с БД, получает необходимые ему ресурсы для полноценной работы.
 Ключевая особенность [rotor'а](https://github.com/basiliscos/cpp-rotor), что I-фаза **асинхронна**,
@@ -217,7 +217,7 @@ namespace asio = boost::asio;
 namespace r = rotor;
 ...
 asio::io_context io_context;
-auto system_context = rotor::asio::system_context_asio_t(io_context)
+auto system_context = rotor::asio::system_context_asio_t(io_context);
 auto strand = std::make_shared<asio::io_context::strand>(io_context);
 auto timeout = r::pt::milliseconds(100);
 auto sup = system_context->create_supervisor<r::asio::supervisor_asio_t>()
@@ -239,6 +239,10 @@ io_context.run();
 и `acceptor_actor_t`) и неявно созданный актор-регистр. Как обычно для акторных
 систем, все акторы слабо связаны друг с другом, т. к. они разделяют только общий
 интерфейс сообщение (опущено в статье).
+
+Акторы "просто создаются" в данном месте, без знания о том, как они связаны между
+собой. Это следствие слабой связанности между акторами, которые с версии `v0.09`
+стали более автономными.
 
 Конфигурация выполнения могла бы быть полностью другой: акторы могли бы
 создаваться на разных потоках, на разных супервайзерах, и даже на различных движках,
