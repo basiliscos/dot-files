@@ -88,7 +88,7 @@ erlang-like hierarchies of responsibilities (see my article
 words, any actor is able to fail during `I-phase` or `S-phase`, and that could lead to
 clean asynchronous collapse of whole hierarchy, independently where the failed actor was located
 in it. It can be told, that either whole hierary of actors becomes `operational`, or, if something
-happesn the whole hierarchy becomes `shut down`.
+happens the whole hierarchy becomes `shut down`.
 
 [rotor](https://github.com/basiliscos/cpp-rotor) seems unique with its init/shutdown approach.
 There is nothing similar in [caf](https://actor-framework.org/);
