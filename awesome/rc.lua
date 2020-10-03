@@ -47,7 +47,7 @@ beautiful.init("/home/b/.config/awesome/themes/default/theme.lua")
 
 
 -- This is used later as the default terminal and editor to run.
-terminal = "lilyterm"
+terminal = "kitty --dump-bytes /tmp/kitty-bytes"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -107,9 +107,8 @@ myawesomemenu = {
 mymainmenu = awful.menu({ items = {
     { "awesome", myawesomemenu, beautiful.awesome_icon },
     { "open terminal", terminal },
-    { "textadept", "/home/b/apps/textadept_9.6.x86_64/textadeptjit" },
+    { "textadept", "/home/b/apps/textadept_10.8.x86_64/textadept" },
     { "VirtualBox", "VirtualBox" },
-    { "hubstaff", "/home/b/apps/hubstaff/HubstaffClient.bin.x86_64" },
   }
 })
 
@@ -333,8 +332,13 @@ globalkeys = gears.table.join(
               {description="show help", group="awesome"}),
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev,
               {description = "view previous", group = "tag"}),
+    awful.key({ modkey,           }, "KP_Left",   awful.tag.viewprev,
+              {description = "view previous", group = "tag"}),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext,
               {description = "view next", group = "tag"}),
+    awful.key({ modkey,           }, "KP_Right",  awful.tag.viewnext,
+              {description = "view next", group = "tag"}),
+
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore,
               {description = "go back", group = "tag"}),
 
@@ -717,11 +721,14 @@ function run_once(prg,arg_string,pname,screen)
     end
 end
 
+run_once("connman-gtk")
 run_once("/usr/bin/syndaemon", "-i 0.5")
 run_once("/home/b/apps/scripts/dual-stick.sh")
 -- run_once("goldendict")
 run_once("mpd")
 run_once("xset", "r rate 200 150")
+run_once("setxkbmap", "-option numpad:microsoft");
+--run_once("xmodmap", ".Xmodmap")
 -- run_once("wicd-gtk", "-t")
 -- run_once("volumeicon")
 -- run_once("claws-mail")
