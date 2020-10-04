@@ -1,28 +1,16 @@
 ## What's new in rotor v0.09
 
-## Teaser
+![actor system](https://habrastorage.org/webt/a8/sa/xw/a8saxwtazuvhttv9eeoutsst7z8.png)
 
-[rotor](https://github.com/basiliscos/cpp-rotor) is
-[non-intrusive](https://basiliscos.github.io/cpp-rotor-docs/md__home_b_development_cpp_cpp-rotor_docs_Rationale.html)
-event loop friendly C++ actor micro framework, similar to its elder brothers like [caf](https://actor-framework.org/) and
-[sobjectizer](https://github.com/Stiffstream/sobjectizer). The new release came out under the
-flag of **pluginization**, which affects all lifetime of an actor.
+[rotor](https://github.com/basiliscos/cpp-rotor) is a [non-intrusive](https://basiliscos.github.io/cpp-rotor-docs/md__home_b_development_cpp_cpp-rotor_docs_Rationale.html) event loop friendly C++ actor micro framework, similar to its elder brothers like [caf](https://actor-framework.org/) and [sobjectizer](https://github.com/Stiffstream/sobjectizer). The new release came out under the flag of **pluginization**, which affects the entire lifetime of an actor.
 
-## Actors linking
+## Actor Linking
 
-Actor system is all about interactions between actors, i.e. sending messages to each other (and do side effects
-to the outer world or listen it to produce messages). However, to let a message be delivered to a final actor
-the actor should **be alive** (1); in other words if actor `A` is going to send message `M`  to actor `B`,
-it should be somewhow be sure, that actor `B` is online and will not go offline when during message `M`
-routing.
+The actor system is all about interactions between actors, i.e. sending messages to each other (and producing side effects for the outer world or listen it to produce messages). However, to let a message be delivered to the final actor the actor should **be alive** (1); in other words, if actor `A` is going to send message `M`  to actor `B`, `A` should some how be  be sure, that actor `B` is online and will not go offline while `M` is routing.
 
-Before [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09` that kind of warranty was only available due
-to child-parent relations, i.e. between supervisor and it child-actor, namely an actor was sure that a
-message will be delivered to supervisor, because the supervisor *owns* the actor and its supervisors lifetime
-covers actors lifetime. Since `v0.09` it  is possible to link actor `A` with actor `B`, to make sure, that
-after successful linking all messages will be delivered.
+Before [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09`, that kind of warranty was only available due to child-parent relations, i.e. between supervisor and its child-actor. In this case an actor was guaranteed that a message would be delivered to its supervisor, because the supervisor *owned* the actor and said supervisor's lifetime covered the respective actor's lifetime. Now, with the release of `v0.09`, it  is possible to link actor `A` with actor `B`, that are not parent- or child-related to one another and to make sure, that all messages will be delivered after successful linking .
 
-So, the actors linking should be performed something like:
+So, linking actors is performed somewhat along these lines:
 
 ~~~{.cpp}
 namespace r = rotor;
@@ -34,15 +22,12 @@ void some_actor_t::on_start() noexcept override {
 void some_actor_t::on_link_response(r::message::link_response_t &response) noexcept {
     auto& ec = message.payload.ec;
     if (!ec) {
-        // successfull linking
+        // successful linking
     }
 }
 ~~~
 
-However, the code like this should not be used direcly as is... because it is unconvenient. It becomes
-more obvious, if you'll try to link actor `A` with 2 or more actors (`B1`, `B2` etc.), because `some_actor_t`
-should keep an internal counter how many target actors are waiting (successful) link responses. And here
-the pluginization system (appeared with `v0.09` release) comes to help:
+However, code like this should not be used directly as is... because it is inconvenient. It becomes more obvious if you try link actor `A` with 2 or more actors (`B1`, `B2`, etc.), since `some_actor_t` should keep an internal count of how many target actors are waiting for (successful) link responses. And here the pluginization system, which featured in the `v0.09` release, comes to the rescue:
 
 ~~~{.cpp}
 namespace r = rotor;
@@ -57,70 +42,42 @@ void some_actor_t::configure(r::plugin::plugin_base_t &plugin) noexcept override
 }
 ~~~
 
-That is much more convenient, since `link_client_plugin_t` is included out of the box to the
-`rotor::actor_base_t`.  Nevertheless, it's not enough you want to have, because it does not answers
-important questions: 1) When actors linking is performed (and it's co-question -- when actors
-**unlinking** is performed)? 2) What will happen if the target actor (aka "server") does not
-exist or rejects linking? 3) What will happen if the target actor decides to shut self down,
-when there are linked to it clients?
+Now, is much more convenient, since `link_client_plugin_t` is included out of the box with the `rotor::actor_base_t`. Nevertheless, it's still not enough, because it does not answer a few important questions, such as: 1. When is actor linking performed (and "by-question": when is actor **unlinking** performed)? 2. What happens if the target actor (aka "server") does not exist or rejects linking? 3. What happens if the target actor decides to self-shutdown, when there are "clients" still linked to it?
 
-To answer to the questions, the concept of actors lifetime should be refreshed.
+To provide answers to these questions, the concept of actors lifetime should be revisited.
 
-## Async actor initialization and shutdown
+## Async Actor Initialization And Shutdown
 
-The simplified picture is: an actor state usually changes as:
-`new` (ctor) -> `initializing` -> `initialized` -> `operational` -> `shutting down` -> `shut down`
+Represented in a simplified manner is: here is how an actor’s state usually changes: `new` (constructor) -> `initializing` -> `initialized` -> `operational` -> `shutting down` -> `shut down`
 
-The main job is performed in `operational` state, and it is up to a user to define what an actor
-will do on up-and-running mode.
+The main job is performed in the `operational` state, and it is up to the user to define what an actor is to do on up-and-running mode.
 
-In the **I-phase** (i.e. `initializing` -> `initialized`), actor should prepare itself for further seving:
-locate and link other actors, establish connection to a database, acquire what ever resources it
-needs to be operational. The key point of [rotor](https://github.com/basiliscos/cpp-rotor), that I-phase
-is **asynchronous**, so an actor should notify its supervisor when it is ready (2).
+In the **I-phase** (i.e. `initializing` -> `initialized`), the actor should prepare itself for further functioning: locate and link with other actors, establish connection to the database, acquire whichever resources it needs to be operational. The key point of [rotor](https://github.com/basiliscos/cpp-rotor) is that I-phase is **asynchronous**, so an actor should notify its supervisor when it is ready (2).
 
-The **S-phase** (i.e. `shutting down` -> `shut down`) is complementary to the **I-phase**, i.e.
-actor is being asked for shutdown, and, when it is done, it should notify its supervisor.
+The **S-phase** (i.e. `shutting down` -> `shut down`) is complementary to the **I-phase**, i.e. the actor is being asked to shut down, and, when it is done, it should notify its supervisor.
 
-While it sounds easy, the complexity lies in the **composability** of actors, while they form
-erlang-like hierarchies of responsibilities (see my article
-[trees of Supervisors](https://basiliscos.github.io/blog/2019/08/19/cpp-supervisors/)). In other
-words, any actor is able to fail during `I-phase` or `S-phase`, and that could lead to
-clean asynchronous collapse of whole hierarchy, independently where the failed actor was located
-in it. It can be told, that either whole hierary of actors becomes `operational`, or, if something
-happens the whole hierarchy becomes `shut down`.
+While it sounds easy, the tricky bit lies in the **composability** of actors, when they form Erlang-like hierarchies of responsibilities (see my article [trees of Supervisors](https://basiliscos.github.io/blog/2019/08/19/cpp-supervisors/)). In other words, any actor can fail during its `I-phase` or `S-phase`, and that can lead to
+the asynchronous collapse of the entire hierarchy, regardless of the failed actor's location within it. Essentially, the entire hierarchy of actors becomes `operational`, or, if something happens the entire hierarchy becomes `shut down`.
 
-[rotor](https://github.com/basiliscos/cpp-rotor) seems unique with its init/shutdown approach.
-There is nothing similar in [caf](https://actor-framework.org/);
-in [sobjectizer](https://github.com/Stiffstream/sobjectizer) there is a
-[shutdown helper](https://sourceforge.net/p/sobjectizer/wiki/so5extra%201.0%20Shutdowner/), which
-plays a similar role as `S-phase` above, however it is limited to one actor only and no `I-phase`
-because [sobjectizer](https://github.com/Stiffstream/sobjectizer) has no hierarchies concept.
+[rotor](https://github.com/basiliscos/cpp-rotor) seems unique with its init/shutdown approach. There is nothing similar in [caf](https://actor-framework.org/);
+in [sobjectizer](https://github.com/Stiffstream/sobjectizer), there is a [shutdown helper](https://sourceforge.net/p/sobjectizer/wiki/so5extra%201.0%20Shutdowner/), which
+carries a function similar to `S-phase` above; however it is limited to one actor only and offers no `I-phase` because [sobjectizer](https://github.com/Stiffstream/sobjectizer) has no concept of hierarchies.
 
-During [rotor](https://github.com/basiliscos/cpp-rotor) usage it was discovered, that in a progress
-of `I-phase` (`S-phase`) potentially *many* resources should be acquired (released) asynchronously,
-what means that no single component (or actor by it's own will) is able to answer the question,
-that it completed the current phase. Instead, the answer is the result of collaborative efforts,
-handled in the right order. And here **plugins** come into play; they are a kind of pieces, each one
-is responsible for particular job of initialization/shutdown.
+While using [rotor](https://github.com/basiliscos/cpp-rotor) usage it was discovered, that the progress of `I-phase` (`S-phase`) may potentially require *many* resources to be acquired (or released) asynchronously, which means that no single component, or actor, is able, by its own will, to answer the question, if it has completed the current phase. Instead, the answer comes as the result of collaborative efforts, handled in the right order. And this is where **plugins** come into play; they are like pieces, each one
+is responsible for a particular job of initialization/shutdown.
 
-So, the promised answers, related to `link_client_plugin_t` are:
+So, here are the promised answers, related to `link_client_plugin_t`:
 
-- Q: When actors linking (unlinking) is performed? A: When actor state is `initalizing` (`shutting down`).
+- Q: When is the actor linking or unlinking performed? A: When actor the state is `initializing` or `shutting down` respectively.
 
-- Q: What will happen if the target actor (aka "server") does not exist or rejects linking? A: As this happens
-when actor state is `initalizing`, the plugin will detect the fail condition and will trigger client-actor
-shutdown. That will possibly trigger cascade effect, i.e. its supervisor will trigger to shutdown too.
+- Q: What happens if the target actor (aka "server") does not exist or rejects linking? A: Since this happens when the actor state is `initializing`, the plugin will detect the fail condition and will trigger client-actor shutdown. That may trigger a cascade effect, i.e. its supervisor will be trigger to shutdown too.
 
-- Q: What will happen if the target actor decides to shut self down, when there are linked to it clients?
-A: The "server-actor" will ask it's clients to unlink, and only when all clients confirmed unlinking,
-the "server-actor" will contunue shutdown procedure (3).
+- Q: What happens if the target actor decides to self-shutdown when there are "clients" still linked to it? A: The "server-actor" will ask its clients to unlink, and once all "clients" have confirmed unlinking, the "server-actor" will continue shutdown procedure (3).
 
-## Simplified example
+## A Simplified Example
 
-Let's assume that there is a database driver with async-interface with one of available event-loops for `rotor`
-and there will be TCP-clients  connecting to our service. The database will be served by `db_actor_t` and
-the service for serving clients will be named `acceptor_t`. The database actor will be like this
+Let's assume that there is a database driver with async-interface with one of available event-loops for `rotor`, and there will be TCP-clients connecting to our service. The database
+will be served by `db_actor_t` and the service for serving clients will be named `acceptor_t`. The database actor is going to look like this:
 
 ~~~{.cpp}
 namespace r = rotor;
@@ -158,18 +115,10 @@ struct db_actor_t: r::actor_base_t {
 };
 ~~~
 
-The inner namespace `resource` is used to identify the database connection as resource.
-It is good practice, istead of hard-coding magic numbers like `0`. During the actor
-configuration stage (which is the part of initialization), when `registry_plugin_t` is ready,
-it will asynchronously register the actor address under symbolic name `service::database`
-in the `registry` (will be shown below). Then, with `resources_plugin_t` it acquires
-database connection resource, blocking the further initialization and starting connection
-to a database. When it is established, the resource will be released, and the `db_actor_t`
-will become `operational`. The `S-phase` is symmetrical, i.e. it blocks shutdown until
-all data will be flushed to DB and connection will be closed; only after that step,
-the actor will continue shutdown (4).
+The inner namespace `resource` is used to identify the database connection as a resource. It is good practice, better than of hard-coding magic numbers like `0`. During the actor
+configuration stage (which is the part of initialization), when `registry_plugin_t` is ready, it will asynchronously register the actor address a under symbolic name `service::database` in the `registry` (will be shown further down below). Then, with the `resources_plugin_t`, it acquires database connection resource, blocking any further initialization and launching connection to the database. When connection is established, the resource is released, and the `db_actor_t` becomes `operational`. The `S-phase` is symmetrical, i.e. it blocks shutdown until all data is flushed to DB and connection is closed; once this step is complete, the actor will continue shutdown (4).
 
-The client acceptor code should be like:
+The client acceptor code should look like this:
 
 ~~~{.cpp}
 namespace r = rotor;
@@ -194,20 +143,11 @@ struct acceptor_actor_t: r::actor_base_t {
 };
 ~~~
 
-The key point here is the `configure` method. When `registry_plugin_t` is ready,
-it will be configured to discover name `service::database` and, when found,
-store it in the field `db_addr` and then it will link the actor to the `db_actor_t`.
-If `service::database` will not be found, the acceptor will shutdown (i.e. `on_start`
-will not be invoked); if the linking will not be confirmed, the acceptor will shutdown
-too. When everything is fine, the acceptor will start accepting new clients.
+The key point here is the `configure` method. When `registry_plugin_t` is ready, it is configured to discover the name `service::database` and, when found, store it in the `db_addr` field; it then links the actor to the `db_actor_t`. If `service::database` is not found, the acceptor shuts down (i.e. `on_start` is not invoked); if the linking is not confirmed, the acceptor will shuts down, too. When everything is fine, the acceptor starts accepting new clients.
 
-The operational part itself is missing in the sake of brevity, because it wasn't
-changed in the new `rotor` version: there is a need of define payload, message
-(including request and response types), define methods which will accept the messages,
-and finally subscribe to them.
+The operational part itself is missing in the sake of brevity, because it wasn't changed in the new `rotor` version: there is a need of define payload, message (including request and response types), define methods which will accept the messages, and finally subscribe to them.
 
-Let's bind everything together in a `main.cpp`. Let's assume that `boost::asio` even loop
-will be used.
+Let's bundle everything together in a `main.cpp`. Let's assume that the `boost::asio` even loop is used.
 
 ~~~{.cpp}
 namespace asio = boost::asio;
@@ -231,52 +171,28 @@ sup->start();
 io_context.run();
 ~~~
 
-The `builder` pattern is activly used in `v0.09` in [rotor](https://github.com/basiliscos/cpp-rotor).
-Here the root supervisor `sup` was created. On it 3 actors were instantiated: the user defined
-`db_actor_t` and `acceptor_actor_t` and implicitly created registry actor. As usual in actor system
-all actors are decoupled each from other, they share only message types (skipped here).
+The `builder` pattern is actively used in the `v0.09` [rotor](https://github.com/basiliscos/cpp-rotor). Here, the root supervisor `sup` was created with 3 actors instantiated on it: the user defined `db_actor_t` and `acceptor_actor_t` and implicitly created a registry actor. As typical for the actor system, all actors are decoupled from each other, only sharing message types (skipped here).
 
-All actors are simply created here and supervisor knows not the relations between them, because
-actors are loosely coupled and became more automonous since `v0.09`.
+All actors are simply created here and supervisor knows not about the relations between them, because actors are loosely coupled and became more automonous since `v0.09`.
 
-The runtime configuration can be completely different: actors can be created on different threads,
-different supervisors, and even using different event loops, but the actors implementation remains
-the same (5). In that cases, there will be more then one
-root supervisors; however to let them find each other the `registry` actor address should be shared
-between them. That is also supported via the `get_registry_address()` method of `supervisor_t`.
+The runtime configuration can be completely different: actors can be created on different threads, different supervisors, and even using different event loops, but the actor implementation remains the same (5). In that cases, there will be more than one root supervisor; however, to enable them to find each other, the `registry` actor address should be shared between them. This is also supported via the `get_registry_address()` method of `supervisor_t`.
 
 ## Summary
 
-The most important feature of [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09` is the
-pluginization of its core. Among the other [plugins](https://basiliscos.github.io/cpp-rotor-docs/index.html)
-the most important are: `link_client_plugin_t` plugin which maintains kind a "virtual connection" between
-actors, `registry_plugin_t` which allows to register and discover actor addreses by their
-symbolic names and the `resources_plugin_t`, which suspends actor init/shutdown until external
-asynchronous events will happen.
+The most important feature of [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09` is the pluginization of its core. Among other [plugins](https://basiliscos.github.io/cpp-rotor-docs/index.html), the most important are: the `link_client_plugin_t` plugin, which maintains kind of "virtual connection" between actors; the `registry_plugin_t`, which allows registing and discovering actor addresses by their symbolic names; and the `resources_plugin_t`, which suspends actor init/shutdown until external asynchronous events occur.
 
-There is less important changes in the relese, like new non-public properties
-[access](https://basiliscos.github.io/blog/2020/07/23/permission-model/) and builder pattern for
-actors construction.
+There are a few less prominent changes in the release, such as the new non-public properties [access](https://basiliscos.github.io/blog/2020/07/23/permission-model/) and builder pattern for actors construction.
 
-Any feedback on rotor is welcome!
+Any feedback on [rotor](https://github.com/basiliscos/cpp-rotor) is welcome!
 
-PS. I'd like to say thanks for [crazypanda.ru](https://crazypanda.ru) for supporting me in my
-actor model researches.
+PS. I'd like to say thanks to [crazypanda.ru](https://crazypanda.ru) for supporting me in my actor model research.
 
 ### Notes
 
-(1) Currently it will lead to segfault upon attempt to deliver a message to an actor, which supervisor
-is already destroyed.
+(1) Currently, it will lead to segfault upon attempt to deliver a message to an actor, whose supervisor is already destroyed.
 
-(2) If it will not notify, init-request timeout will occur, and the actor will be asked by supervisor
-to shutdown, i.e. bypass the `operational` state.
+(2) If it does not notify, init-request timeout will occur, and the actor will be asked by its supervisor to shut down, i.e. bypass the `operational` state.
 
-(3) You might ask: what will happen, if a client-actor will not confirm unlink in time? Well, this is
-somewhat a violation of contract, and the method `system_context_t::on_error(const std::error_code&)`
-will be invoked, which by default will print error to `std::cerr` and invoke `std::terminate()`. To
-avoid contract violation, shutdown timeouts should be tuned to allow client-actors unlink in time.
+(3) You might ask: what happens if a client-actor does not confirm unlinking on time? Well, this is somewhat of a violation of contract, and the `system_context_t::on_error(const std::error_code&)` method will be invoked, which, by default, will print error to `std::cerr` and invoke `std::terminate()`. To avoid contract violation, shutdown timeouts should be tuned to allow client-actors to unlink on time.
 
-(4) During shutdown the `registry_plugin_t` will unregister all registered names in the `registry`.
-
-(5) With the exception, when different event loops are used. When actors use event loop API direcly,
-they will, obviosly, change with event loop change, but that's outside of rotor.
+(4) During shutdown the `registry_plugin_t` will unregister all registered names in the `registry`. (5) With the exception of when, different event loops are used. When actors use event the loop API directly, they will, obviously, change following the event loop change, but that's beyond [rotor](https://github.com/basiliscos/cpp-rotor).
