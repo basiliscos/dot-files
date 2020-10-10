@@ -12,7 +12,7 @@ Before [rotor](https://github.com/basiliscos/cpp-rotor) `v0.09`, that kind of wa
 
 So, linking actors is performed somewhat along these lines:
 
-~~~{.cpp}
+~~~cpp
 namespace r = rotor;
 
 void some_actor_t::on_start() noexcept override {
@@ -29,7 +29,7 @@ void some_actor_t::on_link_response(r::message::link_response_t &response) noexc
 
 However, code like this should not be used directly as is... because it is inconvenient. It becomes more obvious if you try link actor `A` with 2 or more actors (`B1`, `B2`, etc.), since `some_actor_t` should keep an internal count of how many target actors are waiting for (successful) link responses. And here the pluginization system, which featured in the `v0.09` release, comes to the rescue:
 
-~~~{.cpp}
+~~~cpp
 namespace r = rotor;
 
 void some_actor_t::configure(r::plugin::plugin_base_t &plugin) noexcept override {
@@ -79,7 +79,7 @@ So, here are the promised answers, related to `link_client_plugin_t`:
 Let's assume that there is a database driver with async-interface with one of available event-loops for `rotor`, and there will be TCP-clients connecting to our service. The database
 will be served by `db_actor_t` and the service for serving clients will be named `acceptor_t`. The database actor is going to look like this:
 
-~~~{.cpp}
+~~~cpp
 namespace r = rotor;
 
 struct db_actor_t: r::actor_base_t {
@@ -120,7 +120,7 @@ configuration stage (which is the part of initialization), when `registry_plugin
 
 The client acceptor code should look like this:
 
-~~~{.cpp}
+~~~cpp
 namespace r = rotor;
 struct acceptor_actor_t: r::actor_base_t {
     r::address_ptr_t db_addr;
@@ -149,7 +149,7 @@ The operational part itself is missing in the sake of brevity, because it wasn't
 
 Let's bundle everything together in a `main.cpp`. Let's assume that the `boost::asio` even loop is used.
 
-~~~{.cpp}
+~~~cpp
 namespace asio = boost::asio;
 namespace r = rotor;
 
