@@ -1,4 +1,4 @@
-## What's new in rotor (v0.10 .. v0.14)
+## Overview of recent changes in rotor (v0.10 .. v0.14)
 
 [rotor](https://github.com/basiliscos/cpp-rotor) is a [non-intrusive](https://basiliscos.github.io/cpp-rotor-docs/md__home_b_development_cpp_cpp-rotor_docs_Rationale.html) event loop friendly C++ actor micro framework with hierachilcal supervising, similar to its elder brothers like [caf](https://actor-framework.org/) and [sobjectizer](https://github.com/Stiffstream/sobjectizer). There are bulk of important changes since the last release announcement [v0.09](https://habr.com/en/company/crazypanda/blog/522588/)
 
@@ -103,5 +103,66 @@ The full source code of `sha512` reactive actor, which reacts to `CTRL+C`, is av
 
 ### Actor Identity
 
-### Extended Error Istead Of std::error_code
+The canonical way to identify an actor is to check its main address (in [rotor](https://github.com/basiliscos/cpp-rotor) it is possible to let actor have multiple addresses, similarry in [sobjectizer](https://github.com/Stiffstream/sobjectizer) it is possible to subscribe to multiple mboxes). However, sometimes, it is desirable just to log something like actor name in supervisor, when the actor dies, i.e.
 
+
+~~~cpp
+struct my_supervisor_t : public r::supervisor_t {
+    void on_child_shutdown(actor_base_t *actor) noexcept override {
+        std::cout << "actor " << (void*) actor->get_address().get() << " died \n";
+    }
+}
+~~~
+
+Actor address is dynamic, and it changes on every program launch, so whis information is almost useless. To make it sense, actor should
+print its address somewhere, i.e. via overriding `on_start()` method. (If you are new to actor model, you might wonder, why don't use the actor memory address itself as identity. The answer is that `some_actor*` is available only in its supervisor or in actor itself, while actor address, `rotor::address_ptr_t`, is available from all other actors, which have some relation to the original actor)
+
+
+However, the solution was rather inconvenient. That's why I decided to introduce `std::string identity` property into `actor_base_t` class. The actor identity can be set from constructor, or when `address_maker_plugin_t` is configured, i.e.:
+
+~~~cpp
+struct some_actor_t : public t::actor_baset_t {
+    void configure(r::plugin::plugin_base_t &plugin) noexcept override {
+        plugin.with_casted<r::plugin::address_maker_plugin_t>([&](auto &p) {
+            p.set_identity("my-actor-name", false);
+        });
+    }
+};
+~~~
+
+Now it is possible to output actor identity in it's supervisor:
+
+~~~cpp
+struct my_supervisor_t : public r::supervisor_t {
+    void on_child_shutdown(actor_base_t *actor) noexcept override {
+        std::cout << actor->get_identity() << " died \n";
+    }
+}
+~~~
+
+Sometimes, actors are unique within program and sometimes there are more then one instance of the same actor type.To distinguish between them, the address can be appended to the actor identity. That is what the second `bool` parameter does in `set_identity(name, append_addr)` method above.
+
+By default actor identity is something like `actor 0x7fd918016d70` or `supervisor 0x7fd218016d70`. The identity feature is available in since [rotor](https://github.com/basiliscos/cpp-rotor) `v0.14`.
+
+
+### Extended Error Istead Of std::error_code, shutdown reason
+
+When something bad happen, and proper response cannot be generated, then until `v0.14` response contained `std::error_code`. It it serves quite well, but due to hierarchical nature of [rotor](https://github.com/basiliscos/cpp-rotor) it was not enough. Consider the case: a supervisor launches two child actors, and one of them fails to initialized. That will cascade supervisor and the second child-actor to do shutdown. However, from the context of the second actor and its supervisor it is not clear, why the second child was requested to shutdown, because `std::error_code` just does not contains enough information.
+
+That's why `rotor::extended_error_t` was introducded. It contains `std::error_code`, `std::string` context (which is usually actor identity), and the smart pointer to the next extended error, which caused the current one. Now, to the fail of hirarchy of actors can be represented by chain of errors, where shutdown of each actor can be retraced:
+
+~~~cpp
+struct my_supervisor_t : public r::supervisor_t {
+    void on_child_shutdown(actor_base_t *actor) noexcept override {
+        std::cout << actor->get_identity() << " died, reason :: " << actor->get_shutdown_reason()->message();
+    }
+}
+~~~
+
+will output something like:
+
+~~~
+actor-2 due to supervisor shutdown has been requested by supervisor <- actor-1 due initialization failed
+~~~
+
+Together with actor identity, this feature brings more dignostic tools to developers, who use [rotor](https://github.com/basiliscos/cpp-rotor).
