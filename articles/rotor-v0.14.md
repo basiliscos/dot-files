@@ -80,7 +80,7 @@ struct some_actor_t: r::actor_base_t {
 
 It should be mentioned, that requests cancellation *can be done* [sobjectizer](https://github.com/Stiffstream/sobjectizer), but, first, you have to roll your own request/response mechanism, and, second, your own queue in addition of sobjectizer's queue, i.e. unneeded performance penalities.
 
-### std::thread backend/supervisor
+### std::thread backend/supervisor (v0.12)
 
 This is long-awaited feature, which makes [rotor](https://github.com/basiliscos/cpp-rotor) to be [sobjectizer](https://github.com/Stiffstream/sobjectizer)-like: in the case, when an actor have to perform *blocking operations* and it does not need any event loop. For example, in message handler there is a need to do CPU-intensive computation.
 
@@ -99,9 +99,9 @@ struct sha_actor_t : public r::actor_base_t {
     }
 ~~~
 
-The full source code of `sha512` reactive actor, which reacts to `CTRL+C`, is available via the [link](https://github.com/basiliscos/cpp-rotor/blob/master/examples/thread/sha512.cpp). It is available since `v0.12`.
+The full source code of `sha512` reactive actor, which reacts to `CTRL+C`, is available via the [link](https://github.com/basiliscos/cpp-rotor/blob/master/examples/thread/sha512.cpp).
 
-### Actor Identity
+### Actor Identity (v0.14)
 
 The canonical way to identify an actor is to check its main address (in [rotor](https://github.com/basiliscos/cpp-rotor) it is possible to let actor have multiple addresses, similarry in [sobjectizer](https://github.com/Stiffstream/sobjectizer) it is possible to subscribe to multiple mboxes). However, sometimes, it is desirable just to log something like actor name in supervisor, when the actor dies, i.e.
 
@@ -145,7 +145,7 @@ Sometimes, actors are unique within program and sometimes there are more then on
 By default actor identity is something like `actor 0x7fd918016d70` or `supervisor 0x7fd218016d70`. The identity feature is available in since [rotor](https://github.com/basiliscos/cpp-rotor) `v0.14`.
 
 
-### Extended Error Istead Of std::error_code, shutdown reason
+### Extended Error instead ff std::error_code, shutdown reason (v0.14)
 
 When something bad happen, and proper response cannot be generated, then until `v0.14` response contained `std::error_code`. It it serves quite well, but due to hierarchical nature of [rotor](https://github.com/basiliscos/cpp-rotor) it was not enough. Consider the case: a supervisor launches two child actors, and one of them fails to initialized. That will cascade supervisor and the second child-actor to do shutdown. However, from the context of the second actor and its supervisor it is not clear, why the second child was requested to shutdown, because `std::error_code` just does not contains enough information.
 
