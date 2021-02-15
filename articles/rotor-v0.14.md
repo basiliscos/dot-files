@@ -35,7 +35,7 @@ It should be noted, that on shutdown finish moment all timers have to be cancele
 
 To my opinion all messages in [caf](https://actor-framework.org/) have request-response semantics, while in [sobjectizer](https://github.com/Stiffstream/sobjectizer) it has "fire-and-forget" messaging. [rotor](https://github.com/basiliscos/cpp-rotor) has the both kinds of messaging, "fire-and-forget" is by default, the request-response is done on top of regular messaging.
 
-Both [caf](https://actor-framework.org/) and [sobjectizer](https://github.com/Stiffstream/sobjectizer) have **managed messages queue**, which means *the framework* does not deliver a message to actor until the previous message processing has been complete. Contrary, [rotor](https://github.com/basiliscos/cpp-rotor) has no managed queue, which means that the user actor has to create own queue and actor overload protection, if needed. For immediately processed messages, like ping-pong, it does not matter, but for "heavy" requests which trigger I/O, it does. For example, if an actor polls the remote side via HTTP requests, usually, it is undesirable to start a new request, when the previous one has not been finished. Again, the next message is not delivered, until the previous message is processed, does not matter, which message it is.
+Both [caf](https://actor-framework.org/) and [sobjectizer](https://github.com/Stiffstream/sobjectizer) have per-actor **managed messages queue**, which means *the framework* does not deliver a message to actor until the previous message processing has been complete. Contrary, [rotor](https://github.com/basiliscos/cpp-rotor) has no managed queue, which means that the user actor has to create own queue and actor overload protection, if needed. For immediately processed messages, like ping-pong, it does not matter, but for "heavy" requests which trigger I/O, it does. For example, if an actor polls the remote side via HTTP requests, usually, it is undesirable to start a new request, when the previous one has not been finished. Again, the next message is not delivered, until the previous message is processed, does not matter, which message it is.
 
 This also means, that with managed messages queues, the cancellation is, in general, impossible, because the cancel message is still located in queue and it has no chance to be processed until the previous message is done.
 
@@ -78,7 +78,7 @@ struct some_actor_t: r::actor_base_t {
 };
 ~~~
 
-It should be mentioned, that requests cancellation *can be done* [sobjectizer](https://github.com/Stiffstream/sobjectizer), but, first, you have to roll your own request/response mechanism, and, second, your own queue in addition of sobjectizer's queue, i.e. unneeded performance penalties.
+It should be mentioned, that requests cancellation *can be done* [sobjectizer](https://github.com/Stiffstream/sobjectizer), but, first, you have to roll your own request/response mechanism, and, second, your own queue in addition of sobjectizer's queue, i.e. unneeded performance penalties. To my opinion, sobjectizer is mostly suited for *blocking operaions* processing, which, of course, cannot be cancelled in any framework.
 
 ### std::thread backend/supervisor (v0.12)
 
@@ -99,7 +99,7 @@ struct sha_actor_t : public r::actor_base_t {
     }
 ~~~
 
-The full source code of `sha512` reactive actor, which reacts to `CTRL+C`, is available via the [link](https://github.com/basiliscos/cpp-rotor/blob/master/examples/thread/sha512.cpp).
+The full source code of `sha512` reactive actor, which reacts to `CTRL+c`, is available via the [link](https://github.com/basiliscos/cpp-rotor/blob/master/examples/thread/sha512.cpp).
 
 ### Actor Identity (v0.14)
 
@@ -115,10 +115,7 @@ struct my_supervisor_t : public r::supervisor_t {
 ~~~
 
 Actor address is dynamic, and it changes on every program launch, so this information is almost useless. To make it sense, actor should
-print its address somewhere, i.e. via overriding `on_start()` method. (If you are new to actor model, you might wonder, why don't use the actor memory address itself as identity. The answer is that `some_actor*` is available only in its supervisor or in actor itself, while actor address, `rotor::address_ptr_t`, is available from all other actors, which have some relation to the original actor)
-
-
-However, the solution was rather inconvenient. That's why I decided to introduce `std::string identity` property into `actor_base_t` class. The actor identity can be set from constructor, or when `address_maker_plugin_t` is configured, i.e.:
+print its address somewhere, i.e. via overriding `on_start()` method. However, the solution was rather inconvenient. That's why I decided to introduce `std::string identity` property into `actor_base_t` class. The actor identity can be set from constructor, or when `address_maker_plugin_t` is configured, i.e.:
 
 ~~~cpp
 struct some_actor_t : public t::actor_baset_t {
@@ -146,7 +143,7 @@ Sometimes, actors are unique within program and sometimes there are more then on
 By default actor identity is something like `actor 0x7fd918016d70` or `supervisor 0x7fd218016d70`. The identity feature is available in since [rotor](https://github.com/basiliscos/cpp-rotor) `v0.14`.
 
 
-### Extended Error instead ff std::error_code, shutdown reason (v0.14)
+### Extended Error instead of std::error_code, shutdown reason (v0.14)
 
 When something bad happen, and proper response cannot be generated, then until `v0.14` response contained `std::error_code`. It serves quite well, but due to hierarchical nature of [rotor](https://github.com/basiliscos/cpp-rotor) it was not enough. Consider the case: a supervisor launches two child actors, and one of them fails to initialized. That will cascade supervisor and the second child-actor to do shutdown. However, from the context of the second actor and its supervisor it is not clear, why the second child was requested to shutdown, because `std::error_code` just does not contains enough information.
 
@@ -164,6 +161,7 @@ will output something like:
 
 ~~~
 actor-2 due to supervisor shutdown has been requested by supervisor <- actor-1 due initialization failed
+(context)        (context)          (error-code)                       (context)       (error code)
 ~~~
 
 Together with actor identity, this feature brings more diagnostic tools to developers, who use [rotor](https://github.com/basiliscos/cpp-rotor).
