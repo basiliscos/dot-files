@@ -1,0 +1,19 @@
+{
+  "minimap_show" : true,
+  "font_size": 12,
+  "font_size__linux": 12,
+  "ui_theme" : "ebony",
+  "ui_theme_syntax" : "ebony",
+  "bracket_highlight": true,
+  "bracket_symbols": "()[]{}<>",
+  "tab_spaces": true,
+  "ui_tab_multiline": true,
+  "saving_trim_spaces": true,
+  "lexer_dynamic_hilite": true,
+
+  "mouse_drag_drop": false,
+  "mouse_drag_drop_focus_target": false,
+  "mouse_rt_click_moves_caret": false,
+  "mouse_middle_click": 2
+
+}
