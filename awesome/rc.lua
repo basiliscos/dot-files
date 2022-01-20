@@ -47,7 +47,7 @@ beautiful.init("/home/b/.config/awesome/themes/default/theme.lua")
 
 
 -- This is used later as the default terminal and editor to run.
-terminal = "kitty --dump-bytes /tmp/kitty-bytes"
+terminal = "/usr/bin/qterminal"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -107,6 +107,7 @@ myawesomemenu = {
 mymainmenu = awful.menu({ items = {
     { "awesome", myawesomemenu, beautiful.awesome_icon },
     { "open terminal", terminal },
+    { "cuda text", "/home/b/apps/cudatext/cudatext" },
     { "textadept", "/home/b/apps/textadept_10.8.x86_64/textadept" },
     { "VirtualBox", "VirtualBox" },
   }
@@ -728,6 +729,8 @@ run_once("/home/b/apps/scripts/dual-stick.sh")
 run_once("mpd")
 run_once("xset", "r rate 200 150")
 run_once("setxkbmap", "-option numpad:microsoft");
+run_once("udiskie -a -t -n");
+
 --run_once("xmodmap", ".Xmodmap")
 -- run_once("wicd-gtk", "-t")
 -- run_once("volumeicon")
