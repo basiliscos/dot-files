@@ -1,15 +1,15 @@
-# supervising in C++: how to make your programs reliable
+# Supervising in C++: how to make your programs reliable
 
-## supervising in real world
+## Supervising in real world
 
-When some extraordinary situation is met it can be handling at the problem level
+When some extraordinary situation is met it can be handled at the problem level
 itself or it's handling can be delegated to some upper level. Usually, when it
 is really extraordinary, it is delegated or ... it becomes exception handling.
 
 Suppose, you are in a supermarket, and suddenly appears smoke and fire and for a
 reason there is no fire alert signals. What would you do? You can try to
 extinguish fire by yourself, or notify a supermarket employee about the problem and
-let he handle the situation. An employee most likely has signed instructions to
+let he handle the situation. An employee most likely has codified instructions to
 notify its direct manager or a fire service.
 
 The key point here, that the extraordinary situation is not handled by you, but
@@ -17,7 +17,7 @@ by a person, who knows how to deal with it. Of course, you can try to handle it
 by your own, but there might be consequences if you are not the person,
 responsible for the situation.
 
-## supervising in backend and end-user services
+## Supervising in backend and end-user services
 
 All non-trivial programs have bugs, however most of well-known cloud services run
 smoothly and we, as their rarely notice that. This happens, because our programs are
@@ -54,7 +54,7 @@ exceptional cases requires writing additional **special code**, which is extreme
 difficult to test (manually or automatically), it will significantly increase code
 development and maintenance costs without any significant benefits...
 
-## actors as an solution
+## Actors as an solution
 
 [actor](https://en.wikipedia.org/wiki/Actor_model_theory) is a independent entity with
 its own lifetime and state, all the interaction with an actor happens only via
@@ -69,7 +69,7 @@ is universal.
 The normal flow looks like the following (consumer point of view): client-actor sends
 a request message to service-actor, and when the request processing by the service-actor
 is complete, the response message is sent back to the client. The supervisor of the
-service-actor does not participate in the communications.
+service-actor does not participate in the communications; the same as in real life.
 
 The error flow looks like the following from consumer point of view: client-actor sends
 a request message to service-actor, and it receives a response with error from
@@ -114,7 +114,7 @@ to any message box.
 
 **Does supervising tolerates developer errors?** It depends on chosen platform. For the
 Erlang case, with its [let it crash](https://wiki.c2.com/?LetItCrash) principle,
-developer errors lead to an actor crash, and supervisor can make further description.
+developer errors lead to an actor crash, and supervisor can make further decision.
 For the C++ errors like use-after-free or null pointer dereference or memory leaks
 cannot be "catch", so they are not recoverable and program crash or memory abuse should
 be supervised externally by operating system or launchers like `systemd`.
@@ -141,18 +141,18 @@ because messages sending and especially receiving cannot be performed without a
 context. For C++ it can be [rotor](https://github.com/basiliscos/cpp-rotor),
 [sobjectizer](https://github.com/Stiffstream/sobjectizer) or
 [C++ actor framework](https://actor-framework.org/), while erlang it itself
-a platform and a framework.
+a platform and a framework (OTP).
 
 **So, what is the total cost ownership of supervising?** In theory it is nearly
 zero cost in the terms writing special code (it should be done for you), but
 you will be bounded to the platform/framework and the usage of messaging also
 has its own performance price.
 
-## technical details of supervising in C++
+## Technical details of supervising in C++
 
 [C++ actor framework](https://actor-framework.org/) (aka CAF) is considered the
 most influenced by [Erlang](https://www.erlang.org/), however, the supervising
-itself is missing. CAF is capable  to run a cluster of nodes, each one can run
+itself is missing in it. CAF is capable  to run a cluster of nodes, each one can run
 arbitrary number of actors. The strong point of CAF is *transparent messaging*
 (actor addressing), i.e. when a message can be send from one actor to another,
 independently from their locations, i.e. they can be located on different
@@ -173,7 +173,7 @@ supervising as it requires to handle a lot of things in your actors, which
 is violation of
 [Single Responsibility Principle](https://en.wikipedia.org/wiki/Single-responsibility_principle).
 With [sobjectizer](https://github.com/Stiffstream/sobjectizer) you can
-construct hierarchical finite state machines, which are tightly coupled
+construct hierarchical finite state machines, which are tightly integrated
 with messaging, or you can use go-like channels for messaging. So,
 it is still good framework if you need that features.
 
@@ -215,4 +215,14 @@ supervisor->spawn(actor_factory)
     .spawn();
 ```
 
-## conclusion
+## Conclusion
+
+If something went wrong in your program, give that piece of program another
+chance, **restart** it. Maybe it was a temporal network issue, and it can gone
+with the next attempt; just wait a little bit and try again, but be not too
+assertive. One of the possible ways of organizing your program, into that
+self-contained pieces, with own resources and lifetime, is to model them as
+[actos](https://en.wikipedia.org/wiki/Actor_model_theory), which communicate
+each other via messaging. Shape the individual actors into manageable
+hierarchies with supervisors, which provide fine-gained control of actors
+in low-level and in high-level. Make your program reliable.
