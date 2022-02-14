@@ -161,7 +161,7 @@ machines, on the same machine, or in the same process.
 The situation with supervising is slightly better with
 [sobjectizer](https://github.com/Stiffstream/sobjectizer), as it provides
 entity named `cooperation`, which has elemental supervising capabilities,
-such as syncrhonized actors startup (shutdown): either all actors, belonging
+such as synchronized actors startup (shutdown): either all actors, belonging
 to the same `cooperation`, do all start or no actor starts; and, similar,
 if an actor from `cooperation` stops, all actors on the same cooperation
 stop. It should be noted, that `cooperation` class is completely belongs
@@ -223,6 +223,6 @@ with the next attempt; just wait a little bit and try again, but be not too
 assertive. One of the possible ways of organizing your program, into that
 self-contained pieces, with own resources and lifetime, is to model them as
 [actos](https://en.wikipedia.org/wiki/Actor_model_theory), which communicate
-each other via messaging. Shape the individual actors into manageable
-hierarchies with supervisors, which provide fine-gained control of actors
+each other via **messaging**. Shape the individual actors into manageable
+hierarchies with **supervisors**, which provide fine-gained control of actors
 in low-level and in high-level. Make your program reliable.
