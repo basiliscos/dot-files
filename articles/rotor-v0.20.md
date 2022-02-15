@@ -112,12 +112,24 @@ any actor can subscribe to any address, in
 [sobjectizer](https://github.com/Stiffstream/sobjectizer) any agent can subscribe
 to any message box.
 
-**Does supervising tolerates developer errors?** It depends on chosen platform. For the
-Erlang case, with its [let it crash](https://wiki.c2.com/?LetItCrash) principle,
+**Does supervising tolerates developer errors?** It depends on chosen platform. For
+the Erlang case, with its [let it crash](https://wiki.c2.com/?LetItCrash) principle,
 developer errors lead to an actor crash, and supervisor can make further decision.
 For the C++ errors like use-after-free or null pointer dereference or memory leaks
-cannot be "catch", so they are not recoverable and program crash or memory abuse should
-be supervised externally by operating system or launchers like `systemd`.
+cannot be "catch", so they are not recoverable and program crash or memory abuse
+should be supervised externally by operating system or launchers like `systemd`.
+
+**Can you give more practical examples?** Sure. Consider there is a backend
+application, which has a fast distributed cache and slow network connection to
+a database. Can the app continue to serve, if the connection is suddenly gone?
+*May be*, if it is OK to serve read-only requests via cache, trying to reconnect
+to DB "in background"; this might be better than just a cold restarts of the
+whole app via system manager. Even if it cant, the time to become operational for
+the app is fasten then the cold restart, because no need of cache reloading.
+Can the app continue to serve, if the connection to network cache is lost?
+*Surely*, it can, and serve a bit slower is better then a cold restart.
+If backend and cache connections handling does not cost a lot in the terms
+of development and maintenance, the approach is definitely worth.
 
 ## The price
 
