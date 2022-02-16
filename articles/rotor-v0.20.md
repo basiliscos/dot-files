@@ -228,8 +228,8 @@ supervisor->spawn(actor_factory)
 ```
 
 The full example of the spawner pattern for ping-pong (where pinger-actor shut self
-down upon unsuccessful `pong` reply) can be seen [here]
-(https://github.com/basiliscos/cpp-rotor/blob/master/examples/thread/ping-pong-spawner.cpp).
+down upon unsuccessful `pong` reply) can be seen
+[here](https://github.com/basiliscos/cpp-rotor/blob/master/examples/thread/ping-pong-spawner.cpp).
 
 ## Conclusion
 
