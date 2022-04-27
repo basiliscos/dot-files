@@ -15,6 +15,22 @@ local hotkeys_popup = require("awful.hotkeys_popup").widget
 require("awful.hotkeys_popup.keys")
 local lain = require("lain")
 
+function run_once(prg,arg_string,pname,screen)
+    if not prg then
+        do return nil end
+    end
+
+    if not pname then
+       pname = prg
+    end
+
+    if not arg_string then
+        awful.spawn.with_shell("pgrep -f -u $USER -x '" .. pname .. "' || (" .. prg .. ")",screen)
+    else
+        awful.spawn.with_shell("pgrep -f -u $USER -x '" .. pname .. " ".. arg_string .."' || (" .. prg .. " " .. arg_string .. ")",screen)
+    end
+end
+
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
@@ -443,6 +459,11 @@ globalkeys = gears.table.join(
             os.execute(string.format("pactl set-sink-volume %d -1%%", volume.device))
             volume.update()
         end),
+    awful.key({ modkey }, "/",
+        function ()
+            os.execute(string.format("pactl set-sink-mute %d toggle", volume.device))
+            volume.update()
+        end),
 
     -- my
     awful.key({ "Shift" }, "Shift_R", function() kbdcfg.switch() end),
@@ -706,21 +727,6 @@ ilog = lognotify{
 ilog:start()
 -- }}}
 
-function run_once(prg,arg_string,pname,screen)
-    if not prg then
-        do return nil end
-    end
-
-    if not pname then
-       pname = prg
-    end
-
-    if not arg_string then
-        awful.spawn.with_shell("pgrep -f -u $USER -x '" .. pname .. "' || (" .. prg .. ")",screen)
-    else
-        awful.spawn.with_shell("pgrep -f -u $USER -x '" .. pname .. " ".. arg_string .."' || (" .. prg .. " " .. arg_string .. ")",screen)
-    end
-end
 
 run_once("connman-gtk")
 run_once("/usr/bin/syndaemon", "-i 0.5")
