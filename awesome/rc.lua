@@ -76,6 +76,7 @@ modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
+    awful.layout.suit.max,
     awful.layout.suit.floating,
     awful.layout.suit.tile,
     awful.layout.suit.tile.left,
@@ -85,7 +86,6 @@ awful.layout.layouts = {
     awful.layout.suit.fair.horizontal,
     awful.layout.suit.spiral,
     awful.layout.suit.spiral.dwindle,
-    awful.layout.suit.max,
     awful.layout.suit.max.fullscreen,
     awful.layout.suit.magnifier,
     awful.layout.suit.corner.nw,
@@ -204,9 +204,11 @@ gears.timer {
     call_now  = true,
     autostart = true,
     callback  = function()
-        local cmd = [[ip -4 -o addr show wlp2s0 | awk '{printf $4}' | cut -d/ -f1 -z]]
+        local cmd = [[ip -4 -o addr show wlp0s20f3 | awk '{printf $4}' | cut -d/ -f1 -z]]
         awful.spawn.easy_async_with_shell(cmd, function(stdout, stderr, reason, exit_code)
-            ip_addr.markup = string.format("[%s] ", markup.fg.color('#FFFFFF', stdout))
+            local len = string.len(stdout)
+            local ip = string.sub(stdout, 1, len - 1)
+            ip_addr.markup = string.format("[%s] ", markup.fg.color('#FFFFFF', ip))
         end)
     end
 }
@@ -713,7 +715,8 @@ ilog = lognotify{
             "crond",
             "CROND",
             "mpd",
-            "rsyslogd"
+            "rsyslogd",
+            "openntpd"
          },
       },
    	},
@@ -729,7 +732,7 @@ ilog:start()
 
 
 run_once("connman-gtk")
-run_once("/usr/bin/syndaemon", "-i 0.5")
+run_once("/usr/bin/syndaemon", "-i 0.5 -t")
 run_once("/home/b/apps/scripts/dual-stick.sh")
 -- run_once("goldendict")
 run_once("mpd")
