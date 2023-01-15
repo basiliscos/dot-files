@@ -212,6 +212,37 @@ gears.timer {
         end)
     end
 }
+
+-- pipewire
+local volume = wibox.widget{
+    markup = '[?]',
+    align  = 'center',
+    valign = 'center',
+    widget = wibox.widget.textbox
+}
+local volume_update = function()
+    local cmd = [[pactl get-sink-volume @DEFAULT_SINK@ | cut -s -d/ -f2,4; pactl get-sink-mute @DEFAULT_SINK@]]
+    awful.spawn.easy_async_with_shell(cmd, function(stdout, stderr, reason, exit_code)
+        local values = {}
+        for v in stdout:gmatch("(%d+%%)") do table.insert(values, v) end
+        local value = "N/A";
+        if ((#values == 2) and (values[1] == values[2])) then value = values[1] end
+        if (#values == 1) then value = values[1] end
+        local muted = string.find(stdout, "Mute: yes")
+        local color = muted and '#FF0000' or '#00FFFF'
+        volume.markup = string.format("[%s] ", markup.fg.color(color, value))
+        print("volue = ", value)
+    end)
+end
+local volume_timer = gears.timer {
+    timeout   = 5,
+    call_now  = true,
+    autostart = true,
+    callback  = volume_update
+}
+
+-- pulse
+--[[
 local volume = lain.widget.pulse {
     settings = function()
         vlevel = " [" .. volume_now.left .. "-" .. volume_now.right .. "%] "
@@ -221,6 +252,7 @@ local volume = lain.widget.pulse {
         widget:set_markup(lain.util.markup("#7493d2", vlevel))
     end
 }
+--]]
 
 -- {{{ Wibar
 -- Create a textclock widget
@@ -326,7 +358,7 @@ awful.screen.connect_for_each_screen(function(s)
             mynetdown.widget,
             memory.widget,
             cpu.widget,
-            volume.widget,
+            volume,
             battery.widget,
             kbdcfg.widget,
             wibox.widget.systray(),
@@ -453,18 +485,18 @@ globalkeys = gears.table.join(
     -- Volume keys
     awful.key({ modkey }, "Up",
         function ()
-            os.execute(string.format("pactl set-sink-volume %d +1%%", volume.device))
-            volume.update()
+            os.execute("pactl set-sink-volume @DEFAULT_SINK@ +1%")
+            volume_update()
         end),
     awful.key({ modkey }, "Down",
         function ()
-            os.execute(string.format("pactl set-sink-volume %d -1%%", volume.device))
-            volume.update()
+            os.execute("pactl set-sink-volume @DEFAULT_SINK@ -1%")
+            volume_update()
         end),
     awful.key({ modkey }, "/",
         function ()
-            os.execute(string.format("pactl set-sink-mute %d toggle", volume.device))
-            volume.update()
+            os.execute("pactl set-sink-mute @DEFAULT_SINK@ toggle")
+            volume_update()
         end),
 
     -- my
