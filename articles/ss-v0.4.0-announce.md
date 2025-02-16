@@ -20,7 +20,7 @@ The major feature of the new release is [fltk-frontend](https://link) and improv
 
 ![syncspirit v0.4.0](https://notabug.org/basiliscos/syncspirit/raw/v0.4.0-dev/docs/different-uis.gif)
 
-You can download ready-to-use binaries for [Linux](https://link) and [Windows](https://link), [Windows XP](https://link) и [Mac OS X](https://link).  as well as the source code.
+You can download ready-to-use binaries for [Linux x86_64](https://link) and [Windows](https://link), [Windows XP](https://link) и [Mac OS X](https://link).  as well as the source code.
 
 Syncspirit is a syncthing-compatible synchronization program that implements BEP-protocol. Syncspirit is a syncthing-compatible is written from the scratch software in C++, which had different technical decisions on its foundation to overcome syncthing limitations.
 
