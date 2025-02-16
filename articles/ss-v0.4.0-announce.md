@@ -4,11 +4,11 @@
 
 В отличие от [Synthing](https://.syncthing.net), который написан на языке Go и использует клиент-серверную архитектуру, где в качестве клиента выступает веб-браузер, [syncspirit](https://github.com/basiliscos/syncspirit/) является классическим монолитным декстопным приложением, что ведёт к минимальным накладным расходам по использованию оперативной памяти.
 
-[syncspirit](https://github.com/basiliscos/syncspirit/) написан на языке C++; графический интерфейс построен с использованием библиотеки [FLTK](https://www.fltk.org/), в качестве базы данных используется отечественная встраиваемая СУБД [MBDX](https://www.opennet.ru/opennews/art.shtml?num=62403); в качестве системы сообщений используется акторный фрейморк [rotor](https://github.com/basiliscos/cpp-rotor/).
+[syncspirit](https://github.com/basiliscos/syncspirit/) написан на языке C++; графический интерфейс построен с использованием библиотеки [FLTK](https://www.fltk.org/); в качестве базы данных используется отечественная встраиваемая СУБД [MBDX](https://www.opennet.ru/opennews/art.shtml?num=62403); в качестве системы сообщений используется акторный фрейморк [rotor](https://github.com/basiliscos/cpp-rotor/).
 
 ![syncspirit v0.4.0](https://notabug.org/basiliscos/syncspirit/raw/v0.4.0-dev/docs/different-uis.gif)
 
-Готовые сборки доступны для Linux [x86_64](https://link) (в формате [AppImage](https://appimage.org/)), [Windows](https://link), [Windows XP](https://link) и [Mac OS X](https://link).
+Готовые сборки доступны для [Linux x86_64](https://link) (в формате [AppImage](https://appimage.org/)), [Windows](https://link), [Windows XP](https://link) и [Mac OS X](https://link).
 
 Код проекта [распространяется](https://github.com/basiliscos/syncspirit/) под лицензией GPLv3. 
 
